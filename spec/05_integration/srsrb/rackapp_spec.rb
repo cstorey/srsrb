@@ -34,6 +34,11 @@ module SRSRB
         expect(page.question_text).to be == "a question 1"
       end
 
+      it "redirects to the done page when the deck is exhausted" do
+        deck_view.stub(:next_card).with().and_return(nil)
+        page = browser.get_reviews_top
+        expect(page).to be_kind_of(DeckFinishedPage)
+      end
     end
 
     class ReviewBrowser
@@ -54,6 +59,8 @@ module SRSRB
         case id 
         when 'question-page' 
           QuestionPage.new(browser)
+        when 'no-more-reviews-page' 
+          DeckFinishedPage.new(browser)
         else
           fail "No page id recognised: #{id}"
         end
@@ -62,16 +69,22 @@ module SRSRB
       attr_accessor :app, :browser
     end
 
-    class QuestionPage
+    class Page
       def initialize browser
         self.browser = browser
       end
 
+      attr_accessor :browser
+    end
+ 
+    class QuestionPage < Page
       def question_text
         browser.find('div#question').text
       end
 
-      attr_accessor :browser
+    end
+
+    class DeckFinishedPage < Page
     end
   end
 end

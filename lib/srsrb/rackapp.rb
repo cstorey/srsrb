@@ -14,7 +14,11 @@ module SRSRB
     end
     get '/reviews' do
       q = deck_view.next_card
-      haml :question, locals: {question: q}
+      if q
+        haml :question, locals: {question: q}
+      else
+        haml :no_more_reviews
+      end
     end
 
     private

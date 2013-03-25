@@ -31,7 +31,13 @@ describe :SkeletonBehavior do
       sess.click_button('good')
     end
 
-    it do
+    before do
+      SRSRB::RackApp.set :raise_errors, true
+      SRSRB::RackApp.set :dump_errors, false
+      SRSRB::RackApp.set :show_exceptions, false
+    end
+
+    it "reviews a series of pre-baked cards" do
       pending "in progress" do
         visit_reviews
         question_should_be "question 1"

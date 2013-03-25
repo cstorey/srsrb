@@ -9,7 +9,7 @@ describe :SkeletonBehavior do
   end
   context "Reviewing pre-baked data" do
     def visit_reviews
-      sess.visit '/reviews'
+      sess.visit '/reviews/'
     end
     
     def when_i_press_show
@@ -17,12 +17,14 @@ describe :SkeletonBehavior do
     end
 
     def question_should_be text
+      expect(sess.find('div.page')[:id]).to be == 'question-page'
       sess.within('#question') do
         expect(sess.text).to include(text)
       end
     end
 
     def answer_should_be text
+      expect(sess.find('div.page')[:id]).to be == 'answer-page'
      sess.within('#answer') do
         expect(sess.text).to include(text)
       end

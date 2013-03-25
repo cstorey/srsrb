@@ -1,7 +1,7 @@
 %div#question-page.page
-%form
-  %div#question
-    &= question.text
+  %form{action: card.id}
+    %div#question
+      &= card.question
 
-  %button#show_answer
-    show answer
+    %button#show_answer
+      show answer

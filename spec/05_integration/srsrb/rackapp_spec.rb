@@ -105,7 +105,6 @@ module SRSRB
 
     class AnswerPage < Page
       def answer_text
-        puts browser.html
         browser.find('div#answer').text
       end
     end

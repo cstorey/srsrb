@@ -1,11 +1,12 @@
 require 'srsrb/deck_view'
 require 'hamster/hash'
+require 'lexical_uuid'
 
 module SRSRB
   describe DeckViewModel do
     let (:deck) { DeckViewModel.new }
 
-    let (:card_id) { 342 }
+    let (:card_id) { LexicalUUID.new }
     let (:card) { mock :card, id: card_id }
 
     describe "#next_card" do
@@ -32,7 +33,8 @@ module SRSRB
     describe "#card_for" do
       context "when there is no card" do
         it "returns nil" do
-          expect(deck.card_for(32)).to be_nil
+          an_arbitrary_uuid = LexicalUUID.new
+          expect(deck.card_for(an_arbitrary_uuid)).to be_nil
         end
       end
       context "when said card has been added" do

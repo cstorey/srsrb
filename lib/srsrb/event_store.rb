@@ -16,12 +16,12 @@ module SRSRB
       end
     end
 
-    def subscribe &block
+    def subscribe callback
       events.each do |commit|
-        block.call commit.stream_id, commit.data
+        callback.call commit.stream_id, commit.data
       end
 
-      self.subscribers = subscribers.add block
+      self.subscribers = subscribers.add callback
     end
 
     def count

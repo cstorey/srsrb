@@ -20,25 +20,31 @@ module SRSRB
     end
 
     describe "#subscribe" do
+      # Danger will robinson! Mutable state!
+      let (:callback_args) { [] }
+      let (:callback) { ->(stream, event) { callback_args << [stream, event] } }
+      let (:events) { (0...10).map { |n| AnEvent.new data: n } }
       it "should iterate over all events added to the store in turn" do
-        events = (0...10).map { |n| AnEvent.new data: n } 
+        expected_yield_args = events.map { |e| [a_stream, e] }
+
         events.each do |e|
           event_store.record! a_stream, e
         end
 
-        expected_yield_args = events.map { |e| [a_stream, e] }
         expect do |block|
-          event_store.subscribe &block
-        end.to yield_successive_args(*expected_yield_args)
+          event_store.subscribe callback
+        end.to change { callback_args }.from([]).to(expected_yield_args)
       end
 
       it "should fire the block when new events arrive" do
-        expect do |block|
-          event_store.subscribe &block
+        event_store.subscribe callback
 
+        expect do
           event_store.record! a_stream, some_event
-        end.to yield_successive_args([a_stream, some_event])
+        end.to change { callback_args }.from([]).to([[a_stream, some_event]])
       end
+
+      it "should explicitly support multiple subscribers"
     end
   end
 end

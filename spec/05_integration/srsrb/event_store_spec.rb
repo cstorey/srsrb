@@ -19,7 +19,7 @@ module SRSRB
       it "should abort iff we pass the wrong version"
     end
 
-    describe "#each_event" do
+    describe "#subscribe" do
       it "should iterate over all events added to the store in turn" do
         events = (0...10).map { |n| AnEvent.new data: n } 
         events.each do |e|
@@ -28,8 +28,16 @@ module SRSRB
 
         expected_yield_args = events.map { |e| [a_stream, e] }
         expect do |block|
-          event_store.each_event &block
+          event_store.subscribe &block
         end.to yield_successive_args(*expected_yield_args)
+      end
+
+      it "should fire the block when new events arrive" do
+        expect do |block|
+          event_store.subscribe &block
+
+          event_store.record! a_stream, some_event
+        end.to yield_successive_args([a_stream, some_event])
       end
     end
   end

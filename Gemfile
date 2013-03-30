@@ -13,4 +13,5 @@ group :development do
     gem 'guard-rspec'
     gem 'rb-fsevent', '~> 0.9'
     gem 'launchy'
+    gem 'rake'
 end

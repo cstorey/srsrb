@@ -4,9 +4,14 @@ require 'hamster/hash'
 
 module SRSRB
   class DeckViewModel
-    def initialize
+    def initialize event_store
       self.queue = Hamster.queue
       self.cards = Hamster.hash
+      self.event_store = event_store
+    end
+
+    def start!
+      event_store.subscribe method :handle_event
     end
 
     def next_card
@@ -25,7 +30,12 @@ module SRSRB
     end
 
     private
-    attr_accessor :queue, :cards
+    def handle_event id, event
+      card0 = cards.fetch(id)
+      card1 = card0.set_review_count(card0.review_count.succ)
+      self.cards = cards.put(id, card1)
+    end
+    attr_accessor :queue, :cards, :event_store
   end
 
   Card = Hamsterdam::Struct.define(:id, :question, :answer, :review_count)

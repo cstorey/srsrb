@@ -1,13 +1,16 @@
 require 'srsrb/deck_view'
+require 'srsrb/events'
+
 require 'hamster/hash'
 require 'lexical_uuid'
 
 module SRSRB
   describe DeckViewModel do
-    let (:deck) { DeckViewModel.new }
+    let (:event_store) { mock :event_store }
+    let (:deck) { DeckViewModel.new event_store }
 
     let (:card_id) { LexicalUUID.new }
-    let (:card) { mock :card, id: card_id }
+    let (:card) { Card.new id: card_id, review_count: 0 }
 
     describe "#next_card" do
       context "when the deck is empty" do
@@ -43,6 +46,37 @@ module SRSRB
         end
         it "returns the card with the given id" do
           expect(deck.card_for(card_id)).to be == card
+        end
+      end
+    end
+
+    describe "#start!" do
+      it "should subscribe to the event_store" do
+        event_store.should_receive(:subscribe)
+        deck.start!
+      end
+
+      context "with fake event store" do
+        class FakeEventStore
+          include RSpec::Matchers
+          def subscribe block
+            expect(block).to respond_to :call
+            self.subscribe_callback = block
+          end
+
+          attr_accessor :subscribe_callback
+        end
+
+        let (:event_store) { FakeEventStore.new }
+        let (:card_reviewed_event) { CardReviewed.new }
+        it "should update the review count for each card_reviewed" do
+          deck.enqueue_card(card)
+
+          deck.start!
+
+          expect do
+            event_store.subscribe_callback.call card.id, card_reviewed_event
+          end.to change { deck.card_for(card.id).review_count }.by(1)
         end
       end
     end

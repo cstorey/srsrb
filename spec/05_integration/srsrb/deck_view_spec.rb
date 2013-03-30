@@ -1,4 +1,5 @@
 require 'srsrb/deck_view'
+require 'hamster/hash'
 
 module SRSRB
   describe DeckViewModel do
@@ -41,6 +42,16 @@ module SRSRB
         it "returns the card with the given id" do
           expect(deck.card_for(card_id)).to be == card
         end
+      end
+    end
+  end
+
+  describe Card do
+    describe "#as_json" do
+      let (:data) { Hash[id: 42, question: 'eh', answer: 'yiss', review_count: 42] }
+      let (:card) { Card.new data } 
+      it "should return the fields as a json-compatible dictionary" do
+        expect(card.as_json).to be == data
       end
     end
   end

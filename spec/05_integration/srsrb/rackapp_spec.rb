@@ -1,13 +1,19 @@
 require 'srsrb/rackapp'
 require 'capybara'
+require 'json'
 
 module SRSRB
   describe RackApp do
     let (:deck_view) { mock(:deck_view_model) }
-    let (:app) { RackApp.new deck_view }
+    let (:decks) { mock(:decks) }
+    let (:plain_app) { RackApp.new deck_view, decks }
+    let (:app) { Rack::CommonLogger.new plain_app, $stderr }
     let (:browser) { ReviewBrowser.new app }
 
-    let (:card) { OpenStruct.new(id: 42, question: 'a question 1', answer: 'the answer') }
+    let (:card) { OpenStruct.new(
+      id: 42, question: 'a question 1', answer: 'the answer', 
+      as_json: {'canary' => true}) 
+    }
 
     describe "GET /reviews" do
       before do
@@ -48,6 +54,28 @@ module SRSRB
         deck_view.stub(:card_for).with(card.id).and_return(card)
         page = browser.show_answer card.id
         expect(page.answer_text).to be == card.answer
+      end
+
+      it "should include a review button that scores the card"  do
+        deck_view.stub(:card_for).with(card.id).and_return(card)
+        deck_view.stub(:next_card)
+
+        page = browser.show_answer card.id
+
+        decks.should_receive(:score_card!).with(card.id, :good)
+        page.score_card :good
+      end
+    end
+
+    describe "GET /raw-cards/:id" do
+      let (:rtsess) { Rack::Test::Session.new(Rack::MockSession.new(app)) }
+      it "should return the card as plain JSON for now" do
+        deck_view.stub(:card_for).with(card.id).and_return(card)
+        rtsess.get "/raw-cards/#{card.id}" 
+        expect(rtsess.last_response).to be_ok
+        expect(rtsess.last_response.headers['content-type'].split(';').first).to be == 'application/json'
+        data = JSON.parse(rtsess.last_response.body)
+        expect(data).to be == card.as_json
       end
     end
 
@@ -106,6 +134,10 @@ module SRSRB
     class AnswerPage < Page
       def answer_text
         browser.find('div#answer').text
+      end
+
+      def score_card label
+        browser.click_button label
       end
     end
 

@@ -5,6 +5,7 @@ gem 'puma'
 gem 'hamster'
 gem 'hamsterdam'
 gem 'haml'
+gem 'lexical_uuid'
 
 group :development do
     gem 'capybara'
@@ -12,5 +13,4 @@ group :development do
     gem 'guard-rspec'
     gem 'rb-fsevent', '~> 0.9'
     gem 'launchy'
-    gem 'nokogiri'
 end

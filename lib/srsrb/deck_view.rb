@@ -28,7 +28,14 @@ module SRSRB
     attr_accessor :queue, :cards
   end
 
-  Card = Hamsterdam::Struct.define(:id, :question, :answer)
+  Card = Hamsterdam::Struct.define(:id, :question, :answer, :review_count)
   class Card
+    def as_json
+      Hash.new.tap do |h|
+        self.class.field_names.each do |f|
+          h[f] = public_send f
+        end
+      end
+    end
   end
 end

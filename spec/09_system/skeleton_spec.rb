@@ -77,9 +77,7 @@ describe :SkeletonBehavior do
       answer_should_be "answer 1"
       when_score_the_card_as_good
  
-      pending "incomplete" do
-        card_should_have_been_reviewed id: 0, times: 1
-      end
+      card_should_have_been_reviewed id: 0, times: 1
     end
   end
 end

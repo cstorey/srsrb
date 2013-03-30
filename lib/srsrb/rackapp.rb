@@ -9,6 +9,8 @@ module SRSRB
       event_store = EventStore.new
       deck_changes = Decks.new event_store
       deck = DeckViewModel.new event_store
+      deck.start!
+
       deck.enqueue_card(Card.new id: 0, question: 'question 1', answer: 'answer 1')
       deck.enqueue_card(Card.new id: 1, question: 'question 2', answer: 'answer 2')
       app = self.new deck, deck_changes

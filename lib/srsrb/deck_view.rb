@@ -32,7 +32,7 @@ module SRSRB
     private
     def handle_event id, event
       card0 = cards.fetch(id)
-      card1 = card0.set_review_count(card0.review_count.succ)
+      card1 = card0.set_review_count(card0.review_count.to_i.succ)
       self.cards = cards.put(id, card1)
     end
     attr_accessor :queue, :cards, :event_store

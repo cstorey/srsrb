@@ -55,6 +55,12 @@ module SRSRB
       it "should re-use the same interval when the card is scored as poor" do
         expect(next_due_dates_of [:good, :good, :poor, :poor]).to be == [1, 3, 5, 7]
       end
+      it "should use a minimum interval of 1 when the card is initially scored as poor" do
+        expect(next_due_dates_of [:poor, :good, :good, :good]).to be == [1, 3, 7, 15]
+      end
+      it "should use a minimum interval of 1 when the card is scored failed scored as poor" do
+        expect(next_due_dates_of [:good, :good, :fail, :poor]).to be == [1, 3, 3, 4]
+      end
     end
   end
 end

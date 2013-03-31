@@ -17,7 +17,7 @@ module SRSRB
         interval = [prev_interval * 2, 1].max
       elsif poor? score
         prev_interval = intervals.fetch(card_id, 0)
-        interval = prev_interval
+        interval = [prev_interval, 1].max
       else
         interval = 0
       end

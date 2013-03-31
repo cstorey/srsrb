@@ -33,7 +33,7 @@ module SRSRB
         decks.score_card! card_id, score
       end
 
-      it "should increment the next_due date by 1 each time" do
+      it "should increment spacing interval by a factor of two each time" do
         score = :good
         next_due_dates = []
 

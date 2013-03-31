@@ -2,11 +2,12 @@ require 'capybara'
 require 'srsrb/rackapp'
 require 'rack/test'
 require 'json'
+require 'review_browser'
 
 describe :SkeletonBehavior do
   let (:app) { SRSRB::RackApp.assemble }
-  let (:sess) { Capybara::Session.new(:rack_test, app) }
   let (:rtsess) { Rack::Test::Session.new(Rack::MockSession.new(app)) }
+  let (:browser) { SRSRB::ReviewBrowser.new app }
 
   before :all do
     Capybara.save_and_open_page_path = Dir.getwd + "/tmp"
@@ -58,24 +59,26 @@ describe :SkeletonBehavior do
     end
 
     it "reviews a series of pre-baked cards" do
-      visit_reviews
-      question_should_be "question 1"
-      when_i_press_show
-      answer_should_be "answer 1"
-      when_score_the_card_as_good
-      question_should_be "question 2"
-      when_i_press_show
-      answer_should_be "answer 2"
-      when_score_the_card_as_good
-      i_should_see_all_done
+      page = browser.get_reviews_top
+      expect(page.question_text).to be == "question 1"
+      page = page.show_answer
+      expect(page.answer_text).to be == "answer 1"
+      page = page.score_card :good
+
+      expect(page.question_text).to be == "question 2"
+      page = page.show_answer
+      expect(page.answer_text).to be == "answer 2"
+      page = page.score_card :good
+
+      expect(page).to be_all_done
     end
 
     it "should rewcord that each card has been reviewed" do
-      visit_reviews
-      question_should_be "question 1"
-      when_i_press_show
-      answer_should_be "answer 1"
-      when_score_the_card_as_good
+      page = browser.get_reviews_top
+      expect(page.question_text).to be == "question 1"
+      page = page.show_answer
+      expect(page.answer_text).to be == "answer 1"
+      page = page.score_card :good
  
       card_should_have_been_reviewed id: 0, times: 1
     end

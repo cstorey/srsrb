@@ -21,11 +21,11 @@ module SRSRB
       fail "No id (#{id.inspect}) found in page:\n" + browser.html unless id
       case id
       when 'question-page'
-        QuestionPage.new(browser)
+        QuestionPage.new(browser, self)
       when 'answer-page'
-        AnswerPage.new(browser)
+        AnswerPage.new(browser, self)
       when 'no-more-reviews-page'
-        DeckFinishedPage.new(browser)
+        DeckFinishedPage.new(browser, self)
       else
         fail "No page id recognised: #{id}"
       end
@@ -35,11 +35,12 @@ module SRSRB
   end
 
   class Page
-    def initialize browser
+    def initialize browser, parent
       self.browser = browser
+      self.parent = parent
     end
 
-    attr_accessor :browser
+    attr_accessor :browser, :parent
   end
 
   class QuestionPage < Page
@@ -48,6 +49,7 @@ module SRSRB
     end
     def show_answer
       browser.click_button 'show answer'
+      parent.parse
     end
   end
 
@@ -58,9 +60,13 @@ module SRSRB
 
     def score_card label
       browser.click_button label
+      parent.parse
     end
   end
 
   class DeckFinishedPage < Page
+    def all_done?
+      true
+    end
   end
 end

@@ -75,6 +75,17 @@ module SRSRB
         decks.should_receive(:score_card!).with(card.id, :fail)
         page.score_card :fail
       end
+
+      it "should include a review button that scores the card as poor"  do
+        deck_view.stub(:card_for).with(card.id).and_return(card)
+        deck_view.stub(:next_card_upto)
+
+        page = browser.show_answer card.id
+
+        decks.should_receive(:score_card!).with(card.id, :poor)
+        page.score_card :poor
+      end
+
     end
 
     # These are hacks to get the system tests to work.

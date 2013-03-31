@@ -45,6 +45,7 @@ module SRSRB
 
     SCORES = {
       'good' => :good,
+      'poor' => :poor,
       'fail' => :fail,
     }
     post '/reviews/:id' do

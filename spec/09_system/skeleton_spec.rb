@@ -30,26 +30,13 @@ describe :SkeletonBehavior do
     end
 
     it "reviews a series of pre-baked cards" do
-      page = browser.get_reviews_top
-      expect(page.question_text).to be == "question 1"
-      page = page.show_answer
-      expect(page.answer_text).to be == "answer 1"
-      page = page.score_card :good
+      perform_reviews_for_day({0 => [:good], 1 => [:good]})
 
-      expect(page.question_text).to be == "question 2"
-      page = page.show_answer
-      expect(page.answer_text).to be == "answer 2"
-      page = page.score_card :good
-
-      expect(page).to be_all_done
+      expect(browser.parse).to be_all_done
     end
 
     it "should rewcord that each card has been reviewed" do
-      page = browser.get_reviews_top
-      expect(page.question_text).to be == "question 1"
-      page = page.show_answer
-      expect(page.answer_text).to be == "answer 1"
-      page = page.score_card :good
+      perform_reviews_for_day({0 => [:good], 1 => [:good]})
  
       card_should_have_been_reviewed id: 0, times: 1
     end

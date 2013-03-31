@@ -33,43 +33,27 @@ module SRSRB
         decks.score_card! card_id, score
       end
 
-      it "should increment spacing interval by a factor of two each time" do
-        score = :good
+      def next_due_dates_of scores
         next_due_dates = []
-
         event_store.stub(:record!) do |id, event|
           next_due_dates << event.next_due_date
         end
 
-        4.times { decks.score_card! card_id, score }
+        scores.each { |score| decks.score_card! card_id, score }
 
-        expect(next_due_dates).to be == [1, 3, 7, 15]
+        next_due_dates
+      end
+
+      it "should increment spacing interval by a factor of two each time" do
+        expect(next_due_dates_of [:good] * 4).to be == [1, 3, 7, 15]
       end
 
       it "should reset the intervals when a card is failed" do
-        scores = [:good, :good, :fail, :good]
-        next_due_dates = []
-
-        event_store.stub(:record!) do |id, event|
-          next_due_dates << event.next_due_date
-        end
-
-        scores.each { |score| decks.score_card! card_id, score }
-
-        expect(next_due_dates).to be == [1, 3, 3, 4]
+        expect(next_due_dates_of [:good, :good, :fail, :good]).to be == [1, 3, 3, 4]
       end
 
       it "should re-use the same interval when the card is scored as poor" do
-        scores = [:good, :good, :poor, :poor]
-        next_due_dates = []
-
-        event_store.stub(:record!) do |id, event|
-          next_due_dates << event.next_due_date
-        end
-
-        scores.each { |score| decks.score_card! card_id, score }
-
-        expect(next_due_dates).to be == [1, 3, 5, 7]
+        expect(next_due_dates_of [:good, :good, :poor, :poor]).to be == [1, 3, 5, 7]
       end
     end
   end

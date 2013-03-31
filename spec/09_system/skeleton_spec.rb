@@ -56,7 +56,7 @@ describe :SkeletonBehavior do
         reviews.delete card_id if reviews[card_id].empty?
       end
 
-      expect(reviews).to be == {}
+      fail "Expected to do more reviews: #{reviews.inspect} , but none found on day #{day}" if not reviews.empty?
     end
 
     def should_see_reviews reviews

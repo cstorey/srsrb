@@ -45,7 +45,6 @@ module SRSRB
     end
 
     def handle_card_edited id, event
-      pp id: id, evt: event
       card = Card.new question: event.card_fields.fetch('question'), 
           answer: event.card_fields.fetch('answer')
 

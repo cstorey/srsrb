@@ -39,7 +39,7 @@ describe :SkeletonBehavior do
     end
 
     it "reviews a series of pre-baked cards" do
-      with_default_cards 1..2
+      #with_default_cards 1..2
       should_see_reviews(
         [{day: 0,
           should_see: {0 => [:good], 1 => [:good]}},
@@ -88,7 +88,7 @@ describe :SkeletonBehavior do
 
     it "should schedule cards as they are learnt" do
       # This assumes a "powers of two scheduler".
-      with_default_cards 1..2
+      #with_default_cards 1..2
       should_see_reviews [
         {day: 0, should_see: {0 => [:good], 1 => [:good]}}, # both scheduled for 0+1 = 1
         {day: 1, should_see: {0 => [:good], 1 => [:good]}}, # 0+1 scheduled for 1+2 = 3

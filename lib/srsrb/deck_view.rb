@@ -5,7 +5,6 @@ require 'hamster/hash'
 module SRSRB
   class DeckViewModel
     def initialize event_store
-      self.queue = Hamster.queue
       self.cards = Hamster.hash
       self.event_store = event_store
     end
@@ -15,9 +14,10 @@ module SRSRB
     end
 
     def next_card_upto time
-      q0 = queue
-      self.queue = queue.dequeue
-      q0.head
+      return if cards.empty?
+      next_card = cards.values.sort_by { |c| c.due_date }.first
+      pp next_card: next_card, time: time
+      next_card if next_card.due_date <= time
     end
 
     def card_for id
@@ -25,7 +25,6 @@ module SRSRB
     end
 
     def enqueue_card card
-      self.queue = queue.enqueue(card)
       self.cards = cards.put(card.id, card)
     end
 
@@ -46,6 +45,10 @@ module SRSRB
           h[f] = public_send f
         end
       end
+    end
+
+    def due_date
+      review_count || 0
     end
   end
 end

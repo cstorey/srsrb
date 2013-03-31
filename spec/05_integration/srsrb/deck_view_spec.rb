@@ -11,6 +11,7 @@ module SRSRB
 
     let (:card_id) { LexicalUUID.new }
     let (:card) { Card.new id: card_id, review_count: 0 }
+    let (:card_reviewed_event) { CardReviewed.new }
 
     class FakeEventStore
       include RSpec::Matchers
@@ -23,6 +24,10 @@ module SRSRB
     end
 
     describe "#next_card_upto" do
+      before do
+        deck.start!
+      end
+
       context "when the deck is empty" do
         it "returns no cards" do
           expect(deck.next_card_upto(0)).to be_nil
@@ -37,7 +42,7 @@ module SRSRB
         end
 
         it "returns nil once empty" do
-          deck.next_card_upto 0
+          event_store.subscribe_callback.call card.id, card_reviewed_event
           expect(deck.next_card_upto(0)).to be_nil
         end
       end
@@ -68,7 +73,6 @@ module SRSRB
 
       context "with fake event store" do
         let (:event_store) { FakeEventStore.new }
-        let (:card_reviewed_event) { CardReviewed.new }
         it "should update the review count for each card_reviewed" do
           deck.enqueue_card(card)
 

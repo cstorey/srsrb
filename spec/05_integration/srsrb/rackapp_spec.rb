@@ -143,7 +143,7 @@ module SRSRB
           decks.should_receive(:add_or_edit_card!).with(d.fetch(:id), d.fetch(:data))
         end
 
-        rtsess.put "/editor/raw", JSON.unparse(card_data.map { |r| r.merge(id: r.fetch(:id).to_guid) }).tap { |j| puts "JSON: " + j }
+        rtsess.put "/editor/raw", JSON.unparse(card_data.map { |r| r.merge(id: r.fetch(:id).to_guid) })
         expect(rtsess.last_response).to be_ok
       end
     end

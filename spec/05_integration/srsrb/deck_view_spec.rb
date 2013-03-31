@@ -10,8 +10,9 @@ module SRSRB
     let (:deck) { DeckViewModel.new event_store }
 
     let (:card_id) { LexicalUUID.new }
-    let (:card) { Card.new id: card_id, review_count: 0 }
-    let (:card_reviewed_event) { CardReviewed.new }
+    let (:card) { Card.new id: card_id, review_count: 0, due_date: 0 }
+    let (:tomorrow) { 1 }
+    let (:card_reviewed_event) { CardReviewed.new next_due_date: tomorrow }
 
     class FakeEventStore
       include RSpec::Matchers
@@ -79,12 +80,19 @@ module SRSRB
           event_store.subscribe_callback.call card.id, card_reviewed_event
         end.to change { deck.card_for(card.id).review_count }.by(1)
       end
+
+      it "should update the due-date for the card to that specified in the event" do
+        next_due_date = 4
+        expect do
+          event_store.subscribe_callback.call card.id, card_reviewed_event.set_next_due_date(next_due_date)
+        end.to change { deck.card_for(card.id).due_date }.from(0).to(next_due_date)
+      end
     end
   end
 
   describe Card do
     describe "#as_json" do
-      let (:data) { Hash[id: 42, question: 'eh', answer: 'yiss', review_count: 42] }
+      let (:data) { Hash[id: 42, question: 'eh', answer: 'yiss', review_count: 42, due_date: 0] }
       let (:card) { Card.new data } 
       it "should return the fields as a json-compatible dictionary" do
         expect(card.as_json).to be == data

@@ -30,14 +30,16 @@ module SRSRB
     private
     def handle_event id, event
       card0 = cards.fetch(id)
-      card1 = card0.set_review_count(card0.review_count.to_i.succ)
+      card1 = card0.
+        set_review_count(card0.review_count.to_i.succ).
+        set_due_date(event.next_due_date)
+
       self.cards = cards.put(id, card1)
     end
     attr_accessor :queue, :cards, :event_store
   end
 
-  Card = Hamsterdam::Struct.define(:id, :question, :answer, :review_count)
-  class Card
+  class Card < Hamsterdam::Struct.define(:id, :question, :answer, :review_count, :due_date)
     def as_json
       Hash.new.tap do |h|
         self.class.field_names.each do |f|
@@ -47,7 +49,7 @@ module SRSRB
     end
 
     def due_date
-      review_count || 0
+      super || 0
     end
   end
 end

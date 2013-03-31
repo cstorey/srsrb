@@ -31,14 +31,19 @@ describe :SkeletonBehavior do
     end
 
     it "reviews a series of pre-baked cards" do
-      perform_reviews_for_day({0 => [:good], 1 => [:good]}, 0)
+      should_see_reviews(
+        [{day: 0,
+          should_see: {0 => [:good], 1 => [:good]}},
+        ],
+        questions: { 0 => "question 1", 1 => "question 2"},
+        answers: {0 => "answer 1", 1 => "answer 2"})
 
       expect(browser.parse).to be_all_done
     end
 
     it "should rewcord that each card has been reviewed" do
       perform_reviews_for_day({0 => [:good], 1 => [:good]}, 0)
- 
+
       card_should_have_been_reviewed id: 0, times: 1
     end
 
@@ -47,11 +52,15 @@ describe :SkeletonBehavior do
       # already exist.
     end
 
-    def perform_reviews_for_day reviews, day
+    def perform_reviews_for_day reviews, day, questions={}, answers={}
       question = browser.get_reviews_top
       while not question.all_done?
         card_id = question.card_id
+        expect(question.question_text).to be == questions[card_id] if questions.has_key? card_id
+
         answer = question.show_answer
+        expect(answer.answer_text).to be == answers[card_id] if answers.has_key? card_id
+
         scores = reviews.fetch(card_id) { fail "Saw a review for #{card_id} on day #{day}, but no review expected" }
         question = answer.score_card scores.shift
         reviews.delete card_id if reviews[card_id].empty?
@@ -60,13 +69,15 @@ describe :SkeletonBehavior do
       fail "Expected to do more reviews: #{reviews.inspect} , but none found on day #{day}" if not reviews.empty?
     end
 
-    def should_see_reviews reviews
+    def should_see_reviews reviews, content={}
       reviews.each do |spec|
         day = spec.fetch :day
         browser.review_upto day
 
         expected_reviews = spec.fetch :should_see
-        perform_reviews_for_day expected_reviews, day
+        perform_reviews_for_day expected_reviews, day,
+          content.fetch(:questions, {}),
+          content.fetch(:answers, {})
       end
 
     end

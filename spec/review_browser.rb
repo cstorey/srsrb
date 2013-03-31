@@ -61,7 +61,6 @@ module SRSRB
     end
 
     def card_id
-      puts browser.html
       id = browser.find(:xpath, '//*[@data-card-id]')['data-card-id']
       Integer(id)
     end

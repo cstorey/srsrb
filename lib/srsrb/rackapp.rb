@@ -45,10 +45,17 @@ module SRSRB
     end
 
 
+    # Hack for system tests
     get '/raw-cards/:id' do
       content_type :json
       card = deck_view.card_for(Integer(params[:id]))
       JSON.unparse(card.as_json)
+    end
+
+    # Hack for system tests
+    put '/review-until-day' do
+      day = Integer(request.body.read)
+      pp review_until: day
     end
 
     private

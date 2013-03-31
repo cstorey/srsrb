@@ -1,4 +1,5 @@
 %div#question-page.page
+  %div{'data-card-id' => card.id.inspect}
   %form{action: card.id}
     %div#question
       &= card.question

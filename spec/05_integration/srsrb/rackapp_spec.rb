@@ -68,6 +68,7 @@ module SRSRB
       end
     end
 
+    # These are hacks to get the system tests to work.
     describe "GET /raw-cards/:id" do
       let (:rtsess) { Rack::Test::Session.new(Rack::MockSession.new(app)) }
       it "should return the card as plain JSON for now" do

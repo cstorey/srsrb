@@ -40,6 +40,10 @@ module SRSRB
       self.parent = parent
     end
 
+    def all_done?
+      false
+    end
+
     attr_accessor :browser, :parent
   end
 
@@ -50,6 +54,12 @@ module SRSRB
     def show_answer
       browser.click_button 'show answer'
       parent.parse
+    end
+
+    def card_id
+      puts browser.html
+      id = browser.find(:xpath, '//*[@data-card-id]')['data-card-id']
+      Integer(id)
     end
   end
 

@@ -5,7 +5,7 @@ require 'json'
 require 'review_browser'
 
 describe :SkeletonBehavior do
-  let (:app) { SRSRB::RackApp.assemble }
+  let (:app) { Rack::CommonLogger.new SRSRB::RackApp.assemble, $stderr }
   let (:rtsess) { Rack::Test::Session.new(Rack::MockSession.new(app)) }
   let (:browser) { SRSRB::ReviewBrowser.new app }
 
@@ -21,6 +21,11 @@ describe :SkeletonBehavior do
       expect(rtsess.last_response).to be_ok
       data = JSON.parse(rtsess.last_response.body)
       expect(data.fetch('review_count')).to be == count
+    end
+
+    def review_up_until_day day
+      rtsess.put "/review-until-day", day.to_s
+      expect(rtsess.last_response).to be_ok
     end
 
     before do
@@ -54,14 +59,43 @@ describe :SkeletonBehavior do
       card_should_have_been_reviewed id: 0, times: 1
     end
 
+    def with_cards range
+      # Nothing for now--we assume that cards with ids in the given range
+      # already exist.
+    end
+
+    def perform_reviews_for_day reviews
+      question = browser.get_reviews_top
+      while not question.all_done?
+        card_id = question.card_id
+        answer = question.show_answer
+        scores = reviews.fetch card_id
+        question = answer.score_card scores.shift
+        reviews.delete card_id if reviews[card_id].empty?
+      end
+
+      expect(reviews).to be == {}
+    end
+
+    def should_see_reviews reviews
+      reviews.each do |spec|
+        day = spec.fetch :day
+        expected_reviews = spec.fetch :should_see
+        review_up_until_day day
+
+        perform_reviews_for_day expected_reviews
+      end
+
+    end
+
     it "should schedule cards as they are learnt" do
       # This assumes a "powers of two scheduler".
       # So, assuming good reviews
       pending do
-        with_cards 0..1
+        with_cards 1..2
         should_see_reviews [
-          {day: 0, should_see: [0,1]}, # both scheduled for 0+1 = 1
-          {day: 1, should_see: [0,1]}, # 0+1 scheduled for 1+2 = 3
+          {day: 0, should_see: {0 => [:good], 1 => [:good]}}, # both scheduled for 0+1 = 1
+          {day: 1, should_see: {0 => [:good]}}, # 0+1 scheduled for 1+2 = 3
           {day: 2, should_see: []},
           # 0 scheduled for 3+4 = 7
           # 1 scheduled for 3+1 = 4

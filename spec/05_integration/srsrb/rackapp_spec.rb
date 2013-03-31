@@ -22,22 +22,22 @@ module SRSRB
         described_class.set :dump_errors, false
         described_class.set :show_exceptions, false
 
-        deck_view.stub(:next_card)
+        deck_view.stub(:next_card_upto)
       end
 
       it "should query the next card in the deck" do
-        deck_view.should_receive(:next_card).with()
+        deck_view.should_receive(:next_card_upto).with(0)
         page = browser.get_reviews_top
       end
 
       it "should show the question from the next card" do
-        deck_view.stub(:next_card).with().and_return(card)
+        deck_view.stub(:next_card_upto).with(0).and_return(card)
         page = browser.get_reviews_top
         expect(page.question_text).to be == card.question
       end
 
       it "should show the done page when the deck is exhausted" do
-        deck_view.stub(:next_card).with().and_return(nil)
+        deck_view.stub(:next_card_upto).with(0).and_return(nil)
         page = browser.get_reviews_top
         expect(page).to be_kind_of(DeckFinishedPage)
       end
@@ -59,7 +59,7 @@ module SRSRB
 
       it "should include a review button that scores the card"  do
         deck_view.stub(:card_for).with(card.id).and_return(card)
-        deck_view.stub(:next_card)
+        deck_view.stub(:next_card_upto)
 
         page = browser.show_answer card.id
 

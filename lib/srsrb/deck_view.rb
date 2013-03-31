@@ -14,10 +14,13 @@ module SRSRB
       event_store.subscribe method :handle_event
     end
 
-    def next_card
+    def next_card_upto time
       q0 = queue
       self.queue = queue.dequeue
       q0.head
+    end
+    def next_card
+      next_card_upto 0
     end
 
     def card_for id

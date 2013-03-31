@@ -23,7 +23,7 @@ module SRSRB
     end
 
     get '/reviews/' do
-      card = deck_view.next_card
+      card = deck_view.next_card_upto 0
       if card 
         haml :question, locals: {card: card}
       else

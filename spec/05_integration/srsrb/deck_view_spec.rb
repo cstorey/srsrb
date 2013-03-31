@@ -66,22 +66,18 @@ module SRSRB
     end
 
     describe "#start!" do
-      it "should subscribe to the event_store" do
+      before do
+        deck.enqueue_card(card)
         deck.start!
+      end
+      it "should subscribe to the event_store" do
         expect(event_store.subscribe_callback).to respond_to :call
       end
 
-      context "with fake event store" do
-        let (:event_store) { FakeEventStore.new }
-        it "should update the review count for each card_reviewed" do
-          deck.enqueue_card(card)
-
-          deck.start!
-
-          expect do
-            event_store.subscribe_callback.call card.id, card_reviewed_event
-          end.to change { deck.card_for(card.id).review_count }.by(1)
-        end
+      it "should update the review count for each card_reviewed" do
+        expect do
+          event_store.subscribe_callback.call card.id, card_reviewed_event
+        end.to change { deck.card_for(card.id).review_count }.by(1)
       end
     end
   end

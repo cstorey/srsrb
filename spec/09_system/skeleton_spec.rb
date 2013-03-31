@@ -81,7 +81,7 @@ describe :SkeletonBehavior do
           {day: 2, should_see: {}},
           # 0 scheduled for 3+4 = 7
           # 1 scheduled for 3+1 = 4
-          {day: 3, should_see: {0 => [:good], 1 => [:fail, :okay]}},
+          {day: 3, should_see: {0 => [:good], 1 => [:fail, :good]}},
           # 1 gets scheduled for 4+1 -> 5
           # Interval does not change as scheduled as poor
           {day: 4, should_see: {1 => [:poor]}},

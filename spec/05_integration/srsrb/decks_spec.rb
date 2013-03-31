@@ -22,6 +22,16 @@ module SRSRB
 
         decks.score_card! card_id, score
       end
+
+      it "should include the score in the persisted event" do
+        score = :good
+
+        event_store.stub(:record!) do |id, event|
+          expect(event.next_due_date).to be == 1
+        end
+
+        decks.score_card! card_id, score
+      end
     end
   end
 end

@@ -7,7 +7,7 @@ module SRSRB
     end
 
     def score_card! card_id, score
-      event_store.record! card_id, CardReviewed.new(score: score)
+      event_store.record! card_id, CardReviewed.new(score: score, next_due_date: 1)
     end
 
     private

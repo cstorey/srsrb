@@ -79,5 +79,28 @@ describe :SkeletonBehavior do
  
       card_should_have_been_reviewed id: 0, times: 1
     end
+
+    it "should schedule cards as they are learnt" do
+      # This assumes a "powers of two scheduler".
+      # So, assuming good reviews
+      pending do
+        with_cards 0..1
+        should_see_reviews [
+          {day: 0, should_see: [0,1]}, # both scheduled for 0+1 = 1
+          {day: 1, should_see: [0,1]}, # 0+1 scheduled for 1+2 = 3
+          {day: 2, should_see: []},
+          # 0 scheduled for 3+4 = 7
+          # 1 scheduled for 3+1 = 4
+          {day: 3, should_see: {0 => [:good], 1 => [:fail, :okay]}},
+          # 1 gets scheduled for 4+1 -> 5
+          # Interval does not change as scheduled as poor
+          {day: 4, should_see: {1 => [:poor]}},
+          # 1 gets scheduled for 5+2 -> 7
+          {day: 5, should_see: {1 => [:good]}},
+          {day: 6, should_see: {}},
+          {day: 7, should_see: {0 => [:good], 1 => [:good]}},
+        ]
+      end
+    end
   end
 end

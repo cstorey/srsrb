@@ -13,35 +13,6 @@ describe :SkeletonBehavior do
     Capybara.save_and_open_page_path = Dir.getwd + "/tmp"
   end
   context "Reviewing pre-baked data" do
-    def visit_reviews
-      sess.visit '/reviews/'
-    end
-    
-    def when_i_press_show
-      sess.click_button('show answer')
-    end
-
-    def question_should_be text
-      expect(sess.find('div.page')[:id]).to be == 'question-page'
-      sess.within('#question') do
-        expect(sess.text).to include(text)
-      end
-    end
-
-    def answer_should_be text
-      expect(sess.find('div.page')[:id]).to be == 'answer-page'
-     sess.within('#answer') do
-        expect(sess.text).to include(text)
-      end
-    end
-    def when_score_the_card_as_good
-      sess.click_button('good')
-    end
-
-    def i_should_see_all_done
-      expect(sess.find('div.page')[:id]).to be == 'no-more-reviews-page'
-    end
-
     def card_should_have_been_reviewed opts
       id=opts.fetch(:id)
       count=opts.fetch(:times)

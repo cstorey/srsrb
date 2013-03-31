@@ -16,7 +16,6 @@ module SRSRB
     def next_card_upto time
       return if cards.empty?
       next_card = cards.values.sort_by { |c| c.due_date }.first
-      pp next_card: next_card, time: time
       next_card if next_card.due_date <= time
     end
 

@@ -75,6 +75,7 @@ module SRSRB
         expect(event_store.subscribe_callback).to respond_to :call
       end
 
+      context "when receiving CardReviewed events" do
       it "should update the review count for each card_reviewed" do
         expect do
           event_store.subscribe_callback.call card.id, card_reviewed_event
@@ -86,6 +87,32 @@ module SRSRB
         expect do
           event_store.subscribe_callback.call card.id, card_reviewed_event.set_next_due_date(next_due_date)
         end.to change { deck.card_for(card.id).due_date }.from(0).to(next_due_date)
+      end
+      end
+
+      context "when receiving CardEdited events" do
+        let (:id) { LexicalUUID.new }
+        let (:question) { "Why is a cow?" }
+        let (:answer) { "Mu" }
+        let (:card_fields) { { "question" => question, "answer" => answer } }
+        before do
+          event_store.subscribe_callback.call id, CardEdited.new(card_fields: card_fields)
+        end
+
+        it "should add it to the current stack of cards" do
+          expect(deck.card_for(id)).to be_kind_of Card
+        end
+
+        it "should preserve the question" do
+          expect(deck.card_for(id).question).to be == question
+        end
+        it "should preserve the answer" do
+          expect(deck.card_for(id).answer).to be == answer
+        end
+
+        it "should set the due-date to zero" do
+          expect(deck.card_for(id).due_date).to be == 0
+        end
       end
     end
   end

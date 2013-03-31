@@ -31,6 +31,7 @@ module SRSRB
     def handle_event id, event
       case event
         when CardReviewed then handle_card_reviewed id, event
+        when CardEdited then handle_card_edited id, event
       end
     end
 
@@ -42,6 +43,15 @@ module SRSRB
 
       self.cards = cards.put(id, card1)
     end
+
+    def handle_card_edited id, event
+      pp id: id, evt: event
+      card = Card.new question: event.card_fields.fetch('question'), 
+          answer: event.card_fields.fetch('answer')
+
+      self.cards = cards.put(id, card)
+    end
+
     attr_accessor :queue, :cards, :event_store
   end
 

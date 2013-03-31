@@ -12,10 +12,10 @@ module SRSRB
     let (:card_id) { LexicalUUID.new }
     let (:card) { Card.new id: card_id, review_count: 0 }
 
-    describe "#next_card" do
+    describe "#next_card_upto" do
       context "when the deck is empty" do
         it "returns no cards" do
-          expect(deck.next_card).to be_nil
+          expect(deck.next_card_upto(0)).to be_nil
         end
       end
       context "when we have added a card" do
@@ -23,12 +23,12 @@ module SRSRB
           deck.enqueue_card(card)
         end
         it "gets the next question in the deck" do
-          expect(deck.next_card).to be == card
+          expect(deck.next_card_upto(0)).to be == card
         end
 
         it "returns nil once empty" do
-          deck.next_card
-          expect(deck.next_card).to be_nil
+          deck.next_card_upto 0
+          expect(deck.next_card_upto(0)).to be_nil
         end
       end
     end

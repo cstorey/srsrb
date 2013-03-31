@@ -30,13 +30,13 @@ describe :SkeletonBehavior do
     end
 
     it "reviews a series of pre-baked cards" do
-      perform_reviews_for_day({0 => [:good], 1 => [:good]})
+      perform_reviews_for_day({0 => [:good], 1 => [:good]}, 0)
 
       expect(browser.parse).to be_all_done
     end
 
     it "should rewcord that each card has been reviewed" do
-      perform_reviews_for_day({0 => [:good], 1 => [:good]})
+      perform_reviews_for_day({0 => [:good], 1 => [:good]}, 0)
  
       card_should_have_been_reviewed id: 0, times: 1
     end
@@ -46,12 +46,12 @@ describe :SkeletonBehavior do
       # already exist.
     end
 
-    def perform_reviews_for_day reviews
+    def perform_reviews_for_day reviews, day
       question = browser.get_reviews_top
       while not question.all_done?
         card_id = question.card_id
         answer = question.show_answer
-        scores = reviews.fetch card_id
+        scores = reviews.fetch(card_id) { fail "Saw a review for #{card_id} on day #{day}, but no review expected" }
         question = answer.score_card scores.shift
         reviews.delete card_id if reviews[card_id].empty?
       end
@@ -65,7 +65,7 @@ describe :SkeletonBehavior do
         browser.review_upto day
 
         expected_reviews = spec.fetch :should_see
-        perform_reviews_for_day expected_reviews
+        perform_reviews_for_day expected_reviews, day
       end
 
     end
@@ -78,7 +78,7 @@ describe :SkeletonBehavior do
         should_see_reviews [
           {day: 0, should_see: {0 => [:good], 1 => [:good]}}, # both scheduled for 0+1 = 1
           {day: 1, should_see: {0 => [:good], 1 => [:good]}}, # 0+1 scheduled for 1+2 = 3
-          {day: 2, should_see: []},
+          {day: 2, should_see: {}},
           # 0 scheduled for 3+4 = 7
           # 1 scheduled for 3+1 = 4
           {day: 3, should_see: {0 => [:good], 1 => [:fail, :okay]}},

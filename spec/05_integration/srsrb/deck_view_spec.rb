@@ -6,11 +6,21 @@ require 'lexical_uuid'
 
 module SRSRB
   describe DeckViewModel do
-    let (:event_store) { mock :event_store }
+    let (:event_store) { FakeEventStore.new }
     let (:deck) { DeckViewModel.new event_store }
 
     let (:card_id) { LexicalUUID.new }
     let (:card) { Card.new id: card_id, review_count: 0 }
+
+    class FakeEventStore
+      include RSpec::Matchers
+      def subscribe block
+        expect(block).to respond_to :call
+        self.subscribe_callback = block
+      end
+
+      attr_accessor :subscribe_callback
+    end
 
     describe "#next_card_upto" do
       context "when the deck is empty" do
@@ -52,21 +62,11 @@ module SRSRB
 
     describe "#start!" do
       it "should subscribe to the event_store" do
-        event_store.should_receive(:subscribe)
         deck.start!
+        expect(event_store.subscribe_callback).to respond_to :call
       end
 
       context "with fake event store" do
-        class FakeEventStore
-          include RSpec::Matchers
-          def subscribe block
-            expect(block).to respond_to :call
-            self.subscribe_callback = block
-          end
-
-          attr_accessor :subscribe_callback
-        end
-
         let (:event_store) { FakeEventStore.new }
         let (:card_reviewed_event) { CardReviewed.new }
         it "should update the review count for each card_reviewed" do

@@ -26,6 +26,8 @@ module SRSRB
         AnswerPage.new(browser, self)
       when 'no-more-reviews-page'
         DeckFinishedPage.new(browser, self)
+      when 'card-editor-page'
+        CardEditorPage.new(browser, self)
       else
         fail "No page id recognised: #{id}"
       end
@@ -33,6 +35,11 @@ module SRSRB
 
     def review_upto day
       browser.visit "/review-upto?day=#{day}"
+    end
+
+    def get_add_card_page
+      browser.visit '/editor/new'
+      parse
     end
 
     attr_accessor :app, :browser
@@ -80,6 +87,24 @@ module SRSRB
   class DeckFinishedPage < Page
     def all_done?
       true
+    end
+  end
+
+  class CardEditorPage < Page
+    def [](field)
+      browser.find("#field-#{field}").text.strip
+    end
+    def []=(field, value)
+      browser.fill_in "field-#{field}", with: value
+    end
+
+    def add_card!
+      browser.click_button 'add card'
+      parent.parse
+    end
+
+    def last_added_card_id
+      browser.find('#last-added-card-id').text
     end
   end
 end

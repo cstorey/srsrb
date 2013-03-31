@@ -30,7 +30,16 @@ describe :SkeletonBehavior do
       SRSRB::RackApp.set :show_exceptions, false
     end
 
+
+    def with_default_cards range
+      payload = range.map { |x| { id: LexicalUUID.new.to_guid, data: { question: "question #{x}", answer: "answer #{x}" } } }
+      rtsess.put '/editor/raw', JSON.unparse(payload)
+      expect(rtsess.last_response).to be_ok
+      pp put: payload
+    end
+
     it "reviews a series of pre-baked cards" do
+      with_default_cards 1..2
       should_see_reviews(
         [{day: 0,
           should_see: {0 => [:good], 1 => [:good]}},
@@ -45,11 +54,6 @@ describe :SkeletonBehavior do
       perform_reviews_for_day({0 => [:good], 1 => [:good]}, 0)
 
       card_should_have_been_reviewed id: 0, times: 1
-    end
-
-    def with_cards range
-      # Nothing for now--we assume that cards with ids in the given range
-      # already exist.
     end
 
     def perform_reviews_for_day reviews, day, questions={}, answers={}
@@ -84,7 +88,7 @@ describe :SkeletonBehavior do
 
     it "should schedule cards as they are learnt" do
       # This assumes a "powers of two scheduler".
-      with_cards 1..2
+      with_default_cards 1..2
       should_see_reviews [
         {day: 0, should_see: {0 => [:good], 1 => [:good]}}, # both scheduled for 0+1 = 1
         {day: 1, should_see: {0 => [:good], 1 => [:good]}}, # 0+1 scheduled for 1+2 = 3
@@ -100,6 +104,22 @@ describe :SkeletonBehavior do
         {day: 6, should_see: {}},
         {day: 7, should_see: {0 => [:good], 1 => [:good]}},
       ]
+    end
+
+    it "should allow adding new cards" do
+      pending "incomplete" do
+        card = browser.get_add_card_page
+        card[:question] = "Hello"
+        card[:answer] = "Goodbye"
+        confirmation = card.add_card!
+
+        card_id = confirmation.last_added_card_id
+
+        should_see_reviews(
+          [{day: 0, should_see: {card_id => [:good]}}],
+          questions: {card_id => "Hello"},
+          answers: {card_id => "Goodbye"})
+      end
     end
   end
 end

@@ -29,6 +29,12 @@ module SRSRB
 
     private
     def handle_event id, event
+      case event
+        when CardReviewed then handle_card_reviewed id, event
+      end
+    end
+
+    def handle_card_reviewed id, event
       card0 = cards.fetch(id)
       card1 = card0.
         set_review_count(card0.review_count.to_i.succ).

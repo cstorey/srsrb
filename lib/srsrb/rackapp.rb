@@ -55,6 +55,9 @@ module SRSRB
       redirect '/reviews/', 303
     end
 
+    get '/editor/new' do
+      haml :card_editor
+    end
 
     # Hack for system tests
     get '/raw-cards/:id' do
@@ -67,6 +70,20 @@ module SRSRB
     get '/review-upto' do
       day = Integer(params[:day])
       self.current_day = day
+    end
+
+    # Hack for system tests
+    put '/editor/raw' do
+      data = JSON.parse(request.body.read)
+      data.each do |item|
+        fail unless item.kind_of? Hash
+        guid = item.fetch("id")
+        id = LexicalUUID.new(guid)
+        fields = item.fetch("data")
+        decks.add_or_edit_card! id, fields
+      end
+
+      'OK'
     end
 
     private

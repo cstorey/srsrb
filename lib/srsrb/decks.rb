@@ -30,6 +30,10 @@ module SRSRB
       event_store.record! card_id, CardReviewed.new(score: score, next_due_date: next_due_date)
     end
 
+    def add_or_edit_card! id, data
+      event_store.record! id, CardEdited.new(card_fields: data)
+    end
+
     private
 
     def good? score

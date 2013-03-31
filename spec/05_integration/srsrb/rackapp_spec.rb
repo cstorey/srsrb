@@ -88,9 +88,18 @@ module SRSRB
 
     end
 
-    # These are hacks to get the system tests to work.
+    describe "GET /editor/new" do
+      it "should return an empty form" do
+        page = browser.get_add_card_page
+        expect(page).to be_kind_of CardEditorPage
+        expect(page[:question]).to be_empty
+        expect(page[:answer]).to be_empty
+      end
+    end
+
+    context "hacks to get the system tests to work" do
+    let (:rtsess) { Rack::Test::Session.new(Rack::MockSession.new(app)) }
     describe "GET /raw-cards/:id" do
-      let (:rtsess) { Rack::Test::Session.new(Rack::MockSession.new(app)) }
       it "should return the card as plain JSON for now" do
         deck_view.stub(:card_for).with(card.id).and_return(card)
         rtsess.get "/raw-cards/#{card.id}" 
@@ -107,6 +116,23 @@ module SRSRB
         deck_view.should_receive(:next_card_upto).with(3)
         page = browser.get_reviews_top
       end
+    end
+
+    describe "PUT /editor/raw" do
+      let (:card_data) { [
+        {id: LexicalUUID.new, data:  { 'question' =>  "foo", 'answer' =>  "bar" } },
+        {id: LexicalUUID.new, data:  { 'question' =>  "baz", 'answer' =>  "qux" } },
+      ] }
+      it "should create one card for each item" do
+        card_data.each do |d|
+          decks.should_receive(:add_or_edit_card!).with(d.fetch(:id), d.fetch(:data))
+        end
+
+        rtsess.put "/editor/raw", JSON.unparse(card_data.map { |r| r.merge(id: r.fetch(:id).to_guid) }).tap { |j| puts "JSON: " + j }
+        expect(rtsess.last_response).to be_ok
+      end
+    end
+
     end
   end
 end

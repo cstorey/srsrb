@@ -62,5 +62,17 @@ module SRSRB
         expect(next_due_dates_of [:good, :good, :fail, :poor]).to be == [1, 3, 3, 4]
       end
     end
+
+    describe "#add_or_edit_card!" do
+      let (:card_id) { LexicalUUID.new }
+      let (:card_fields) { { "stuff" => "things", "gubbins" => "cheese" } }
+
+      it "should record the score, and card in the event store" do
+        event_store.should_receive(:record!).with(card_id, CardEdited.new(card_fields: card_fields))
+        decks.add_or_edit_card! card_id, card_fields
+      end
+
+      it "should validate the card data against the card's model"
+    end
   end
 end

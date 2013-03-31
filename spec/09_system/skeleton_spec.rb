@@ -23,11 +23,6 @@ describe :SkeletonBehavior do
       expect(data.fetch('review_count')).to be == count
     end
 
-    def review_up_until_day day
-      rtsess.put "/review-until-day", day.to_s
-      expect(rtsess.last_response).to be_ok
-    end
-
     before do
       SRSRB::RackApp.set :raise_errors, true
       SRSRB::RackApp.set :dump_errors, false
@@ -80,9 +75,9 @@ describe :SkeletonBehavior do
     def should_see_reviews reviews
       reviews.each do |spec|
         day = spec.fetch :day
-        expected_reviews = spec.fetch :should_see
-        review_up_until_day day
+        browser.review_upto day
 
+        expected_reviews = spec.fetch :should_see
         perform_reviews_for_day expected_reviews
       end
 

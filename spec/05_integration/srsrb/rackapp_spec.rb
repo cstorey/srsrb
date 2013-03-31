@@ -16,15 +16,14 @@ module SRSRB
       as_json: {'canary' => true}) 
     }
 
+    before do
+      described_class.set :raise_errors, true
+      described_class.set :dump_errors, false
+      described_class.set :show_exceptions, false
+      deck_view.stub(:next_card_upto)
+    end
+
     describe "GET /reviews" do
-      before do
-        described_class.set :raise_errors, true
-        described_class.set :dump_errors, false
-        described_class.set :show_exceptions, false
-
-        deck_view.stub(:next_card_upto)
-      end
-
       it "should query the next card in the deck" do
         deck_view.should_receive(:next_card_upto).with(0)
         page = browser.get_reviews_top
@@ -78,6 +77,14 @@ module SRSRB
         expect(rtsess.last_response.headers['content-type'].split(';').first).to be == 'application/json'
         data = JSON.parse(rtsess.last_response.body)
         expect(data).to be == card.as_json
+      end
+    end
+
+    describe "PUT /review-upto-day" do
+      it "should set the current day" do
+        browser.review_upto 3
+        deck_view.should_receive(:next_card_upto).with(3)
+        page = browser.get_reviews_top
       end
     end
   end

@@ -31,6 +31,10 @@ module SRSRB
       end
     end
 
+    def review_upto day
+      browser.visit "/review-upto?day=#{day}"
+    end
+
     attr_accessor :app, :browser
   end
 

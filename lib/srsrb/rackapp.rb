@@ -22,8 +22,15 @@ module SRSRB
       self.decks = decks
     end
 
+    use Rack::Session::Cookie, :key => 'rack.session',
+                           #:domain => 'foo.com',
+                           :path => '/',
+                           :expire_after => 2592000, # In seconds
+                           :secret => 'change_me'
+
+
     get '/reviews/' do
-      card = deck_view.next_card_upto 0
+      card = deck_view.next_card_upto current_day
       if card 
         haml :question, locals: {card: card}
       else
@@ -53,12 +60,21 @@ module SRSRB
     end
 
     # Hack for system tests
-    put '/review-until-day' do
-      day = Integer(request.body.read)
-      pp review_until: day
+    get '/review-upto' do
+      day = Integer(params[:day])
+      self.current_day = day
     end
 
     private
+
+    def current_day
+      session[:current_day] || 0
+    end
+
+    def current_day= day
+      session[:current_day] = day
+    end
+
     attr_accessor :deck_view, :decks
   end
 end

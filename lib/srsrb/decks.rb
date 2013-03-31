@@ -24,8 +24,6 @@ module SRSRB
 
       next_due_date = prev_due_date + interval
 
-      pp card: card_id.to_s, prev_due_date: prev_due_date, next: next_due_date
-
       self.next_due_dates = next_due_dates.put(card_id, next_due_date)
       self.intervals = intervals.put(card_id, interval)
 

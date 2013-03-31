@@ -56,7 +56,7 @@ module SRSRB
         expect(page.answer_text).to be == card.answer
       end
 
-      it "should include a review button that scores the card"  do
+      it "should include a review button that scores the card as 'good'"  do
         deck_view.stub(:card_for).with(card.id).and_return(card)
         deck_view.stub(:next_card_upto)
 
@@ -64,6 +64,16 @@ module SRSRB
 
         decks.should_receive(:score_card!).with(card.id, :good)
         page.score_card :good
+      end
+
+      it "should include a review button that fails the card"  do
+        deck_view.stub(:card_for).with(card.id).and_return(card)
+        deck_view.stub(:next_card_upto)
+
+        page = browser.show_answer card.id
+
+        decks.should_receive(:score_card!).with(card.id, :fail)
+        page.score_card :fail
       end
     end
 

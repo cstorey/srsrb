@@ -43,7 +43,10 @@ module SRSRB
       haml :answer, locals: {card: card}
     end
 
-    SCORES = { 'good' => :good }
+    SCORES = {
+      'good' => :good,
+      'fail' => :fail,
+    }
     post '/reviews/:id' do
       score = SCORES.fetch(params.fetch('score'))
       id = Integer(params.fetch('id'))

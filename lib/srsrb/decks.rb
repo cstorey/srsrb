@@ -15,6 +15,9 @@ module SRSRB
       if good? score
         prev_interval = intervals.fetch(card_id, 0)
         interval = [prev_interval * 2, 1].max
+      elsif poor? score
+        prev_interval = intervals.fetch(card_id, 0)
+        interval = prev_interval
       else
         interval = 0
       end
@@ -33,6 +36,10 @@ module SRSRB
 
     def good? score
       score == :good
+    end
+
+    def poor? score
+      score == :poor
     end
     attr_accessor :event_store, :next_due_dates, :intervals
   end

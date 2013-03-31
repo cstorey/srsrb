@@ -59,6 +59,18 @@ module SRSRB
         expect(next_due_dates).to be == [1, 3, 3, 4]
       end
 
+      it "should re-use the same interval when the card is scored as poor" do
+        scores = [:good, :good, :poor, :poor]
+        next_due_dates = []
+
+        event_store.stub(:record!) do |id, event|
+          next_due_dates << event.next_due_date
+        end
+
+        scores.each { |score| decks.score_card! card_id, score }
+
+        expect(next_due_dates).to be == [1, 3, 5, 7]
+      end
     end
   end
 end

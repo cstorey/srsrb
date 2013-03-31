@@ -32,6 +32,19 @@ module SRSRB
 
         decks.score_card! card_id, score
       end
+
+      it "should increment the next_due date by 1 each time" do
+        score = :good
+        next_due_dates = []
+
+        event_store.stub(:record!) do |id, event|
+          next_due_dates << event.next_due_date
+        end
+
+        4.times { decks.score_card! card_id, score }
+
+        expect(next_due_dates).to be == [1, 3, 7, 15]
+      end
     end
   end
 end

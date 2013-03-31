@@ -59,6 +59,15 @@ module SRSRB
       haml :card_editor
     end
 
+    post '/editor/' do
+      question = params.fetch('the-question')
+      answer = params.fetch('the-answer')
+      fields = Hash['question' => question, 'answer' => answer]
+      id = LexicalUUID.new
+      decks.add_or_edit_card! id, fields
+      redirect '/editor/new', 303
+    end
+
     # Hack for system tests
     get '/raw-cards/:id' do
       content_type :json

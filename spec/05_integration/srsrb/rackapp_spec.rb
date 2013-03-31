@@ -95,6 +95,21 @@ module SRSRB
         expect(page[:question]).to be_empty
         expect(page[:answer]).to be_empty
       end
+
+      let (:question) { "a question" }
+      let (:answer) {  "an answer" }
+
+      it "should submit a card edit message when the form is filled in and submitted" do
+        page = browser.get_add_card_page
+        page[:question] = "a question"
+        page[:answer] = "an answer"
+
+        decks.should_receive(:add_or_edit_card!).with(an_instance_of(LexicalUUID), { 'question' => question, 'answer' => answer })
+
+        page.add_card!
+      end
+
+      it "should indicate a problem when the question other is missing"
     end
 
     context "hacks to get the system tests to work" do

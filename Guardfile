@@ -2,5 +2,5 @@
 # More info at https://github.com/guard/guard#readme
 
 guard :rspec, cli: '' do
-    watch(%r{^.*$})
+    watch(%r{^.*$}) { "spec" }
 end

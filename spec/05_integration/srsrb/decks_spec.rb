@@ -45,6 +45,20 @@ module SRSRB
 
         expect(next_due_dates).to be == [1, 3, 7, 15]
       end
+
+      it "should reset the intervals when a card is failed" do
+        scores = [:good, :good, :fail, :good]
+        next_due_dates = []
+
+        event_store.stub(:record!) do |id, event|
+          next_due_dates << event.next_due_date
+        end
+
+        scores.each { |score| decks.score_card! card_id, score }
+
+        expect(next_due_dates).to be == [1, 3, 3, 4]
+      end
+
     end
   end
 end

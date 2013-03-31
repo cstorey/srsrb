@@ -11,9 +11,13 @@ module SRSRB
 
     def score_card! card_id, score
       prev_due_date = next_due_dates.fetch(card_id, 0)
-      prev_interval = intervals.fetch(card_id, 0.5)
 
-      interval = prev_interval * 2
+      if good? score
+        prev_interval = intervals.fetch(card_id, 0)
+        interval = [prev_interval * 2, 1].max
+      else
+        interval = 0
+      end
 
       next_due_date = prev_due_date + interval
 
@@ -26,6 +30,10 @@ module SRSRB
     end
 
     private
+
+    def good? score
+      score == :good
+    end
     attr_accessor :event_store, :next_due_dates, :intervals
   end
 end

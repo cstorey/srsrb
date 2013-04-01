@@ -1,1 +1,1 @@
-web: bin/rackup -Ilib -s puma rackup.ru
+web: bin/rackup -Ilib -s puma rackup.ru -p $PORT

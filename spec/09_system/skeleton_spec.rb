@@ -129,10 +129,27 @@ describe :SkeletonBehavior do
   end
 
   context "for card models" do
-    it "should be possible to create a model"
+    it "should be possible to create a model and use it on a card" do
+      pending "incomplete" do
+      model = browser.get_add_model_page
+      model.set_name 'vocabulary'
+      model.add_field 'word'
+      model.add_field 'meaning'
+      model.add_field 'pronounciation'
+      model.set_question_template "{{ word }}"
+      model.set_answer_template "{{ meaning }} -- {{ pronounciation }}"
+      model.create!
+
+      card = browser.get_add_card_page
+      card.set_model 'vocabulary'
+      card[:word] = "fish"
+      card[:meaning] = "damp animal"
+      card[:meaning] = "ffu-issh-uh"
+      confirmation = card.add_card!
+      end
+    end
     it "should be possible to add fields a model"
     it "should be possible to remove fields from a model"
-    it "should be possible to create a card with a model"
     it "should be possible to change the model for a card"
   end
 

@@ -75,6 +75,11 @@ module SRSRB
       redirect '/editor/new', 303
     end
 
+    # Model editing
+    get '/model/new' do
+      haml :model_editor
+    end
+
     # Hack for system tests
     get '/raw-cards/:id' do
       content_type :json

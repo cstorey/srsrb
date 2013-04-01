@@ -28,6 +28,8 @@ module SRSRB
         DeckFinishedPage.new(browser, self)
       when 'card-editor-page'
         CardEditorPage.new(browser, self)
+      when 'model-editor-page'
+        ModelEditorPage.new(browser, self)
       else
         fail "No page id recognised: #{id}"
       end
@@ -39,6 +41,11 @@ module SRSRB
 
     def get_add_card_page
       browser.visit '/editor/new'
+      parse
+    end
+
+    def get_add_model_page
+      browser.visit '/model/new'
       parse
     end
 
@@ -106,6 +113,32 @@ module SRSRB
     def last_added_card_id
       id = browser.find('#last-added-card-id').text
       LexicalUUID.new id
+    end
+
+    def set_model name
+      browser.select(name, from: 'card model')
+    end
+  end
+
+  class ModelEditorPage < Page
+    def add_field name
+      browser.fill_in('new field name', with: name)
+    end
+
+    def set_name name
+      browser.fill_in('model name', with: name)
+    end
+
+    def set_question_template tmpl
+      browser.fill_in('question template', with: tmpl)
+    end
+
+    def set_answer_template tmpl
+      browser.fill_in('answer template', with: tmpl)
+    end
+
+    def create!
+      browser.click_button 'save'
     end
   end
 end

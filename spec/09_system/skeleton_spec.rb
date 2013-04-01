@@ -105,6 +105,8 @@ describe :SkeletonBehavior do
         {day: 7, should_see: {id0 => [:good], id1 => [:good]}},
       ]
     end
+
+    it "shoud defer failures to the end of the queue"
   end
 
   context "for card editing" do

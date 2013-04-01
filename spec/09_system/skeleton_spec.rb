@@ -13,7 +13,7 @@ describe :SkeletonBehavior do
   before :all do
     Capybara.save_and_open_page_path = Dir.getwd + "/tmp"
   end
-  context "Reviewing pre-baked data" do
+  context "when using the web UI" do
     def card_should_have_been_reviewed opts
       id=opts.fetch(:id)
       count=opts.fetch(:times)
@@ -120,5 +120,11 @@ describe :SkeletonBehavior do
         questions: {card_id => "Hello"},
         answers: {card_id => "Goodbye"})
     end
+
+    it "should be possible to edit existing cards"
+    it "should be possible to trash existing cards"
+    it "should be possible to create an alternate model"
+    it "should be possible to create a card with an alternate model"
+    it "should be possible to import an Anki deck preserving history"
   end
 end

@@ -93,4 +93,5 @@ DEPENDENCIES
   puma
   rake
   rb-fsevent (~> 0.9)
+  rspec
   sinatra

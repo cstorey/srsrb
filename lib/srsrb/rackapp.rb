@@ -2,6 +2,8 @@ require 'sinatra/base'
 require 'srsrb/deck_view'
 require 'srsrb/decks'
 require 'srsrb/event_store'
+require 'lexical_uuid'
+require 'haml'
 
 module SRSRB
   class RackApp < Sinatra::Base

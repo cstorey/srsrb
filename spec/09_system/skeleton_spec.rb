@@ -13,32 +13,61 @@ describe :SkeletonBehavior do
   before :all do
     Capybara.save_and_open_page_path = Dir.getwd + "/tmp"
   end
-  context "when using the web UI" do
-    def card_should_have_been_reviewed opts
-      id=opts.fetch(:id)
-      count=opts.fetch(:times)
 
-      rtsess.get "/raw-cards/#{id.to_guid}"
-      expect(rtsess.last_response).to be_ok
-      data = JSON.parse(rtsess.last_response.body)
-      expect(data.fetch('review_count')).to be == count
+  before do
+    SRSRB::RackApp.set :raise_errors, true
+    SRSRB::RackApp.set :dump_errors, false
+    SRSRB::RackApp.set :show_exceptions, false
+  end
+
+  def card_should_have_been_reviewed opts
+    id=opts.fetch(:id)
+    count=opts.fetch(:times)
+
+    rtsess.get "/raw-cards/#{id.to_guid}"
+    expect(rtsess.last_response).to be_ok
+    data = JSON.parse(rtsess.last_response.body)
+    expect(data.fetch('review_count')).to be == count
+  end
+
+  def with_default_cards range
+    payload = range.map { |x| { id: LexicalUUID.new.to_guid, data: { question: "question #{x}", answer: "answer #{x}" } } }
+    rtsess.put '/editor/raw', JSON.unparse(payload)
+    expect(rtsess.last_response).to be_ok
+    payload.map { |x| LexicalUUID.new x.fetch(:id) }
+  end
+
+  def perform_reviews_for_day reviews, day, questions={}, answers={}
+    question = browser.get_reviews_top
+    while not question.all_done?
+      card_id = question.card_id
+      expect(question.question_text).to be == questions[card_id] if questions.has_key? card_id
+
+      answer = question.show_answer
+      expect(answer.answer_text).to be == answers[card_id] if answers.has_key? card_id
+
+      scores = reviews.fetch(card_id) { fail "Saw a review for #{card_id.to_guid} on day #{day}, but no review expected" }
+      question = answer.score_card scores.shift
+      reviews.delete card_id if reviews[card_id].empty?
     end
 
-    before do
-      SRSRB::RackApp.set :raise_errors, true
-      SRSRB::RackApp.set :dump_errors, false
-      SRSRB::RackApp.set :show_exceptions, false
+    fail "Expected to do more reviews: #{reviews.inspect} , but none found on day #{day}" if not reviews.empty?
+  end
+
+  def should_see_reviews reviews, content={}
+    reviews.each do |spec|
+      day = spec.fetch :day
+      browser.review_upto day
+
+      expected_reviews = spec.fetch :should_see
+      perform_reviews_for_day expected_reviews, day,
+        content.fetch(:questions, {}),
+        content.fetch(:answers, {})
     end
+  end
 
-
-    def with_default_cards range
-      payload = range.map { |x| { id: LexicalUUID.new.to_guid, data: { question: "question #{x}", answer: "answer #{x}" } } }
-      rtsess.put '/editor/raw', JSON.unparse(payload)
-      expect(rtsess.last_response).to be_ok
-      payload.map { |x| LexicalUUID.new x.fetch(:id) }
-    end
-
-    it "reviews a series of pre-baked cards" do
+  context "for reviewing" do
+    it "should allow reviews a series of pre-baked cards" do
       id0, id1 = with_default_cards 1..2
       should_see_reviews(
         [{day: 0,
@@ -50,41 +79,11 @@ describe :SkeletonBehavior do
       expect(browser.parse).to be_all_done
     end
 
-    it "should rewcord that each card has been reviewed" do
+    it "should record that each card has been reviewed" do
       id0, id1 = with_default_cards 1..2
       perform_reviews_for_day({id0 => [:good], id1 => [:good]}, 0)
 
       card_should_have_been_reviewed id: id0, times: 1
-    end
-
-    def perform_reviews_for_day reviews, day, questions={}, answers={}
-      question = browser.get_reviews_top
-      while not question.all_done?
-        card_id = question.card_id
-        expect(question.question_text).to be == questions[card_id] if questions.has_key? card_id
-
-        answer = question.show_answer
-        expect(answer.answer_text).to be == answers[card_id] if answers.has_key? card_id
-
-        scores = reviews.fetch(card_id) { fail "Saw a review for #{card_id.to_guid} on day #{day}, but no review expected" }
-        question = answer.score_card scores.shift
-        reviews.delete card_id if reviews[card_id].empty?
-      end
-
-      fail "Expected to do more reviews: #{reviews.inspect} , but none found on day #{day}" if not reviews.empty?
-    end
-
-    def should_see_reviews reviews, content={}
-      reviews.each do |spec|
-        day = spec.fetch :day
-        browser.review_upto day
-
-        expected_reviews = spec.fetch :should_see
-        perform_reviews_for_day expected_reviews, day,
-          content.fetch(:questions, {}),
-          content.fetch(:answers, {})
-      end
-
     end
 
     it "should schedule cards as they are learnt" do
@@ -106,7 +105,9 @@ describe :SkeletonBehavior do
         {day: 7, should_see: {id0 => [:good], id1 => [:good]}},
       ]
     end
+  end
 
+  context "for card editing" do
     it "should allow adding new cards" do
       card = browser.get_add_card_page
       card[:question] = "Hello"
@@ -123,8 +124,17 @@ describe :SkeletonBehavior do
 
     it "should be possible to edit existing cards"
     it "should be possible to trash existing cards"
-    it "should be possible to create an alternate model"
-    it "should be possible to create a card with an alternate model"
+  end
+
+  context "for card models" do
+    it "should be possible to create a model"
+    it "should be possible to add fields a model"
+    it "should be possible to remove fields from a model"
+    it "should be possible to create a card with a model"
+    it "should be possible to change the model for a card"
+  end
+
+  context "for importing and exporting" do
     it "should be possible to import an Anki deck preserving history"
   end
 end

@@ -1,5 +1,5 @@
 source "https://rubygems.org/"
-ruby ENV.fetch("RUBY_VERSION", "1.9.3")
+ruby '1.9.3' unless ENV.has_key? 'RUBY_VERSION'
 
 gem 'sinatra'
 gem 'hamster'

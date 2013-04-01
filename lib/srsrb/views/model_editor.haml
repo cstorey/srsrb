@@ -1,0 +1,15 @@
+%div#model-editor-page.page
+  %form(method='GET' action='')
+    %label(for='model-name') model name
+    %input(type='text' id='model-name' value='')
+
+    - for field in fields
+      %dt
+        %input.field-name(name='field.name' value=field)
+
+    %label(for='new-field-name') new field name
+    %input(type='text' id='new-field-name' name='new_field_name')
+
+    %button(name='action' value='add-field') add field
+
+    %button add model

@@ -121,12 +121,23 @@ module SRSRB
   end
 
   class ModelEditorPage < Page
-    def add_field name
-      browser.fill_in('new field name', with: name)
+
+    def name
+      browser.find(:fillable_field, 'model name').value
     end
 
-    def set_name name
+    def name= name
       browser.fill_in('model name', with: name)
+    end
+
+    def field_names
+      browser.all('input.field-name').map { |r| r.value }
+    end
+
+    def add_field name
+      puts browser.html
+      browser.fill_in('new field name', with: name)
+      browser.click_button 'add field'
     end
 
     def set_question_template tmpl

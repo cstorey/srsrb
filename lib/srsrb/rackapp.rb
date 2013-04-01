@@ -77,7 +77,11 @@ module SRSRB
 
     # Model editing
     get '/model/new' do
-      haml :model_editor
+      pp new_model_params: params
+      fields = []
+      fields << params[:new_field_name] if params[:action] == 'add-field'
+      pp fields: fields
+      haml :model_editor, locals: {fields: fields}
     end
 
     # Hack for system tests

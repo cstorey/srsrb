@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'srsrb/rackapp'
 require 'capybara'
 require 'json'
@@ -120,6 +121,38 @@ module SRSRB
       end
 
       it "should indicate a problem when the question other is missing"
+    end
+
+    describe "GET /model/new" do
+      let (:model) { browser.get_add_model_page }
+      it "should return a form to add a new model" do
+        expect(model).to be_kind_of ModelEditorPage
+      end
+
+      it "should have a blank model name by default" do
+        expect(model.name).to be_empty
+      end
+
+      it "should be able to add a new field" do
+        field_name = 'a field'
+        expect do
+          model.add_field field_name
+        end.to change { model.field_names }.by([field_name])
+      end
+
+      it "should submit a new model message when filled in and submitted" do
+        pending "やり過ぎ！"
+        model = browser.get_add_model_page
+        model.set_name 'vocabulary'
+        model.add_field 'word'
+        model.add_field 'meaning'
+        model.add_field 'pronounciation'
+        model.set_question_template "{{ word }}"
+        model.set_answer_template "{{ meaning }} -- {{ pronounciation }}"
+
+
+        model.create!
+      end
     end
 
     context "hacks to get the system tests to work" do

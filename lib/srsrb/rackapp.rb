@@ -55,7 +55,9 @@ module SRSRB
     end
 
     get '/editor/new' do
-      haml :card_editor
+      # Hack for the system tests
+      last_card_id = session.delete :last_added_card_id
+      haml :card_editor, locals: {last_card_id: last_card_id}
     end
 
     post '/editor/' do
@@ -63,6 +65,10 @@ module SRSRB
       answer = params.fetch('the-answer')
       fields = Hash['question' => question, 'answer' => answer]
       id = LexicalUUID.new
+
+      # Hack for the system tests
+      session[:last_added_card_id] = id
+
       decks.add_or_edit_card! id, fields
       redirect '/editor/new', 303
     end

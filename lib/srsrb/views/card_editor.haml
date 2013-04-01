@@ -4,6 +4,9 @@
     %input(type='text' name='the-answer' id='field-answer' value='')
     %button add card
 
-  %div
-    Last card added was:
-    %span#last-added-card-id
+  -# Hack for the system tests
+  -if last_card_id
+    %div
+      Last card added was:
+      %span#last-added-card-id
+        = last_card_id.to_guid

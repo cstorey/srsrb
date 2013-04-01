@@ -104,7 +104,8 @@ module SRSRB
     end
 
     def last_added_card_id
-      browser.find('#last-added-card-id').text
+      id = browser.find('#last-added-card-id').text
+      LexicalUUID.new id
     end
   end
 end

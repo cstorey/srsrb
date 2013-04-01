@@ -109,6 +109,16 @@ module SRSRB
         page.add_card!
       end
 
+      it "should include the id of the previously added card for the system tests" do 
+        decks.stub(:add_or_edit_card!)
+        page = browser.get_add_card_page
+        page[:question] = "a question"
+        page[:answer] = "an answer"
+        page = page.add_card!
+
+        expect(page.last_added_card_id).to be_kind_of LexicalUUID
+      end
+
       it "should indicate a problem when the question other is missing"
     end
 

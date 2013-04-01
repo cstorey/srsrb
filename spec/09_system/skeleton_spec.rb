@@ -108,19 +108,17 @@ describe :SkeletonBehavior do
     end
 
     it "should allow adding new cards" do
-      pending "incomplete" do
-        card = browser.get_add_card_page
-        card[:question] = "Hello"
-        card[:answer] = "Goodbye"
-        confirmation = card.add_card!
+      card = browser.get_add_card_page
+      card[:question] = "Hello"
+      card[:answer] = "Goodbye"
+      confirmation = card.add_card!
 
-        card_id = confirmation.last_added_card_id
+      card_id = confirmation.last_added_card_id
 
-        should_see_reviews(
-          [{day: 0, should_see: {card_id => [:good], 0 => [:good], 1 => [:good]}}],
-          questions: {card_id => "Hello"},
-          answers: {card_id => "Goodbye"})
-      end
+      should_see_reviews(
+        [{day: 0, should_see: {card_id => [:good]}}],
+        questions: {card_id => "Hello"},
+        answers: {card_id => "Goodbye"})
     end
   end
 end

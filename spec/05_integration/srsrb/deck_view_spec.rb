@@ -113,6 +113,9 @@ module SRSRB
         it "should set the due-date to zero" do
           expect(deck.card_for(id).due_date).to be == 0
         end
+        it "should set the card id" do
+          expect(deck.card_for(id).id).to be == id
+        end
       end
     end
   end

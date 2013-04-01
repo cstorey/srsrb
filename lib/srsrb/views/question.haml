@@ -1,6 +1,6 @@
 %div#question-page.page
-  %div{'data-card-id' => card.id.inspect}
-  %form{action: card.id}
+  %div{'data-card-id' => card.id.to_guid}
+  %form{action: card.id.to_guid}
     %div#question
       &= card.question
 

@@ -12,7 +12,7 @@ module SRSRB
     end
 
     def show_answer id
-      browser.visit "/reviews/#{id}"
+      browser.visit "/reviews/#{id.to_guid}"
       parse
     end
 
@@ -69,7 +69,7 @@ module SRSRB
 
     def card_id
       id = browser.find(:xpath, '//*[@data-card-id]')['data-card-id']
-      Integer(id)
+      LexicalUUID.new id
     end
   end
 

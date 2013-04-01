@@ -12,7 +12,7 @@ module SRSRB
     let (:browser) { ReviewBrowser.new app }
 
     let (:card) { OpenStruct.new(
-      id: 42, question: 'a question 1', answer: 'the answer', 
+      id: LexicalUUID.new, question: 'a question 1', answer: 'the answer', 
       as_json: {'canary' => true}) 
     }
 
@@ -117,7 +117,7 @@ module SRSRB
     describe "GET /raw-cards/:id" do
       it "should return the card as plain JSON for now" do
         deck_view.stub(:card_for).with(card.id).and_return(card)
-        rtsess.get "/raw-cards/#{card.id}" 
+        rtsess.get "/raw-cards/#{card.id.to_guid}" 
         expect(rtsess.last_response).to be_ok
         expect(rtsess.last_response.headers['content-type'].split(';').first).to be == 'application/json'
         data = JSON.parse(rtsess.last_response.body)

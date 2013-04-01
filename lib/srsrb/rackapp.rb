@@ -11,8 +11,6 @@ module SRSRB
       deck = DeckViewModel.new event_store
       deck.start!
 
-      deck.enqueue_card(Card.new id: 0, question: 'question 1', answer: 'answer 1')
-      deck.enqueue_card(Card.new id: 1, question: 'question 2', answer: 'answer 2')
       app = self.new deck, deck_changes
     end
 
@@ -39,7 +37,8 @@ module SRSRB
     end
 
     get '/reviews/:id' do
-      card = deck_view.card_for(Integer(params[:id]))
+      id = LexicalUUID.new params.fetch('id')
+      card = deck_view.card_for(id)
       haml :answer, locals: {card: card}
     end
 
@@ -50,8 +49,8 @@ module SRSRB
     }
     post '/reviews/:id' do
       score = SCORES.fetch(params.fetch('score'))
-      id = Integer(params.fetch('id'))
-      decks.score_card! Integer(id), score
+      id = LexicalUUID.new params.fetch('id')
+      decks.score_card! id, score
       redirect '/reviews/', 303
     end
 
@@ -71,7 +70,8 @@ module SRSRB
     # Hack for system tests
     get '/raw-cards/:id' do
       content_type :json
-      card = deck_view.card_for(Integer(params[:id]))
+      id = LexicalUUID.new params.fetch('id')
+      card = deck_view.card_for id
       JSON.unparse(card.as_json)
     end
 

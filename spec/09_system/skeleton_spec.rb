@@ -18,7 +18,7 @@ describe :SkeletonBehavior do
       id=opts.fetch(:id)
       count=opts.fetch(:times)
 
-      rtsess.get "/raw-cards/#{id}"
+      rtsess.get "/raw-cards/#{id.to_guid}"
       expect(rtsess.last_response).to be_ok
       data = JSON.parse(rtsess.last_response.body)
       expect(data.fetch('review_count')).to be == count
@@ -35,25 +35,26 @@ describe :SkeletonBehavior do
       payload = range.map { |x| { id: LexicalUUID.new.to_guid, data: { question: "question #{x}", answer: "answer #{x}" } } }
       rtsess.put '/editor/raw', JSON.unparse(payload)
       expect(rtsess.last_response).to be_ok
-      pp put: payload
+      payload.map { |x| LexicalUUID.new x.fetch(:id) }
     end
 
     it "reviews a series of pre-baked cards" do
-      #with_default_cards 1..2
+      id0, id1 = with_default_cards 1..2
       should_see_reviews(
         [{day: 0,
-          should_see: {0 => [:good], 1 => [:good]}},
+          should_see: {id0 => [:good], id1 => [:good]}},
         ],
-        questions: { 0 => "question 1", 1 => "question 2"},
-        answers: {0 => "answer 1", 1 => "answer 2"})
+        questions: { id0 => "question 1", id1 => "question 2"},
+        answers: {id0 => "answer 1", id1 => "answer 2"})
 
       expect(browser.parse).to be_all_done
     end
 
     it "should rewcord that each card has been reviewed" do
-      perform_reviews_for_day({0 => [:good], 1 => [:good]}, 0)
+      id0, id1 = with_default_cards 1..2
+      perform_reviews_for_day({id0 => [:good], id1 => [:good]}, 0)
 
-      card_should_have_been_reviewed id: 0, times: 1
+      card_should_have_been_reviewed id: id0, times: 1
     end
 
     def perform_reviews_for_day reviews, day, questions={}, answers={}
@@ -65,7 +66,7 @@ describe :SkeletonBehavior do
         answer = question.show_answer
         expect(answer.answer_text).to be == answers[card_id] if answers.has_key? card_id
 
-        scores = reviews.fetch(card_id) { fail "Saw a review for #{card_id} on day #{day}, but no review expected" }
+        scores = reviews.fetch(card_id) { fail "Saw a review for #{card_id.to_guid} on day #{day}, but no review expected" }
         question = answer.score_card scores.shift
         reviews.delete card_id if reviews[card_id].empty?
       end
@@ -88,21 +89,21 @@ describe :SkeletonBehavior do
 
     it "should schedule cards as they are learnt" do
       # This assumes a "powers of two scheduler".
-      #with_default_cards 1..2
+      id0, id1 = with_default_cards 1..2
       should_see_reviews [
-        {day: 0, should_see: {0 => [:good], 1 => [:good]}}, # both scheduled for 0+1 = 1
-        {day: 1, should_see: {0 => [:good], 1 => [:good]}}, # 0+1 scheduled for 1+2 = 3
+        {day: 0, should_see: {id0 => [:good], id1 => [:good]}}, # both scheduled for 0+1 = 1
+        {day: 1, should_see: {id0 => [:good], id1 => [:good]}}, # 0+1 scheduled for 1+2 = 3
         {day: 2, should_see: {}},
         # 0 scheduled for 3+4 = 7
         # 1 scheduled for 3+1 = 4
-        {day: 3, should_see: {0 => [:good], 1 => [:fail, :good]}},
+        {day: 3, should_see: {id0 => [:good], id1 => [:fail, :good]}},
         # 1 gets scheduled for 4+1 -> 5
         # Interval does not change as scheduled as poor
-        {day: 4, should_see: {1 => [:poor]}},
+        {day: 4, should_see: {id1 => [:poor]}},
         # 1 gets scheduled for 5+2 -> 7
-        {day: 5, should_see: {1 => [:good]}},
+        {day: 5, should_see: {id1 => [:good]}},
         {day: 6, should_see: {}},
-        {day: 7, should_see: {0 => [:good], 1 => [:good]}},
+        {day: 7, should_see: {id0 => [:good], id1 => [:good]}},
       ]
     end
 
@@ -116,7 +117,7 @@ describe :SkeletonBehavior do
         card_id = confirmation.last_added_card_id
 
         should_see_reviews(
-          [{day: 0, should_see: {card_id => [:good]}}],
+          [{day: 0, should_see: {card_id => [:good], 0 => [:good], 1 => [:good]}}],
           questions: {card_id => "Hello"},
           answers: {card_id => "Goodbye"})
       end

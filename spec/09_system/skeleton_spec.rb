@@ -136,6 +136,10 @@ describe :SkeletonBehavior do
     it "should be possible to change the model for a card"
   end
 
+  context "for images" do
+    it "should be possible to add an image to a card"
+  end
+
   context "for importing and exporting" do
     it "should be possible to import an Anki deck preserving history"
   end

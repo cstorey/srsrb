@@ -123,7 +123,7 @@ module SRSRB
   class ModelEditorPage < Page
 
     def name
-      browser.find(:fillable_field, 'model name').value
+      browser.find(:fillable_field, 'model name').value || ''
     end
 
     def name= name
@@ -135,16 +135,15 @@ module SRSRB
     end
 
     def add_field name
-      puts browser.html
       browser.fill_in('new field name', with: name)
       browser.click_button 'add field'
     end
 
-    def set_question_template tmpl
+    def question_template= tmpl
       browser.fill_in('question template', with: tmpl)
     end
 
-    def set_answer_template tmpl
+    def answer_template= tmpl
       browser.fill_in('answer template', with: tmpl)
     end
 

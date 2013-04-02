@@ -77,11 +77,16 @@ module SRSRB
 
     # Model editing
     get '/model/new' do
-      pp new_model_params: params
-      fields = []
+      fields = [params[:field_name]].flatten.reject(&:nil?).reject(&:empty?)
       fields << params[:new_field_name] if params[:action] == 'add-field'
-      pp fields: fields
-      haml :model_editor, locals: {fields: fields}
+      model_name = params[:model_name]
+      if params[:action] == 'commit'
+        decks.add_or_edit_model! LexicalUUID.new, name: params[:model_name],
+          fields: fields, question_template: params[:question],
+          answer_template: params[:answer]
+      end
+
+      haml :model_editor, locals: {fields: fields, model_name: model_name}
     end
 
     # Hack for system tests

@@ -140,16 +140,42 @@ module SRSRB
         end.to change { model.field_names }.by([field_name])
       end
 
-      it "should submit a new model message when filled in and submitted" do
-        pending "やり過ぎ！"
-        model = browser.get_add_model_page
-        model.set_name 'vocabulary'
-        model.add_field 'word'
-        model.add_field 'meaning'
-        model.add_field 'pronounciation'
-        model.set_question_template "{{ word }}"
-        model.set_answer_template "{{ meaning }} -- {{ pronounciation }}"
+      it "should be able to add more than one new field" do
+        fields = %w{one two three}
+        expect do
+          fields.each do |f|
+            model.add_field f
+          end
+        end.to change { model.field_names }.by(fields)
+      end
 
+      it "should preserve the model name across reloads" do
+        name = 'fred'
+        model.name = name
+        expect do
+          model.add_field 'x'
+        end.to_not change { model.name }.from(name)
+      end
+
+      it "should submit a new model message when filled in and submitted" do
+        name = 'vocabulary'
+        fields = %w{word meaning pronounciation}
+        q_template =  "{{ word }}"
+        a_template = "{{ meaning }} -- {{ pronounciation }}" 
+        model = browser.get_add_model_page
+
+        model.name = name
+
+        fields.each do |f|
+          model.add_field f
+        end
+        model.question_template = q_template
+        model.answer_template = a_template
+
+        decks.should_receive(:add_or_edit_model!).with(
+          an_instance_of(LexicalUUID), name: 'vocabulary', 
+          question_template: q_template, answer_template: a_template,
+          fields: fields)
 
         model.create!
       end

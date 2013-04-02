@@ -1,15 +1,24 @@
 %div#model-editor-page.page
   %form(method='GET' action='')
     %label(for='model-name') model name
-    %input(type='text' id='model-name' value='')
+    %input(type='text' id='model-name' name='model_name' value=model_name)
 
     - for field in fields
       %dt
-        %input.field-name(name='field.name' value=field)
+        %input.field-name(name='field_name[]' value=field)
 
     %label(for='new-field-name') new field name
     %input(type='text' id='new-field-name' name='new_field_name')
 
     %button(name='action' value='add-field') add field
 
-    %button add model
+    %hr
+    %dl
+      %dt Question Template
+      %dd
+        %textarea(id='question template' name='question')
+      %dt Answer Template
+      %dd
+        %textarea(id='answer template' name='answer')
+
+    %button(name='action' value='commit') save

@@ -2,6 +2,7 @@ require 'sinatra/base'
 require 'srsrb/deck_view'
 require 'srsrb/decks'
 require 'srsrb/event_store'
+require 'srsrb/object_patch'
 require 'lexical_uuid'
 require 'haml'
 
@@ -59,7 +60,10 @@ module SRSRB
     get '/editor/new' do
       # Hack for the system tests
       last_card_id = session.delete :last_added_card_id
-      haml :card_editor, locals: {last_card_id: last_card_id}
+      haml :card_editor, locals: {
+        last_card_id: last_card_id,
+        card_models: deck_view.card_models.flat_map { |m| [m.id.to_guid, m.name] }.into { |kvs| Hash[*kvs] },
+      }
     end
 
     post '/editor/' do

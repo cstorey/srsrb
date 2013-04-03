@@ -1,3 +1,5 @@
+require 'srsrb/object_patch'
+
 module SRSRB
   class ReviewBrowser
     include RSpec::Matchers
@@ -117,6 +119,12 @@ module SRSRB
 
     def set_model name
       browser.select(name, from: 'card model')
+    end
+
+    def card_models
+      browser.all('select#card-model option').
+        flat_map { |node| [node.value, node.text] }.
+        into { |kvs| Hash[*kvs] }
     end
   end
 

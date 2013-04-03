@@ -1,5 +1,6 @@
 # coding: utf-8
 require 'srsrb/rackapp'
+require 'srsrb/object_patch'
 require 'capybara'
 require 'json'
 require 'review_browser'
@@ -90,11 +91,22 @@ module SRSRB
     end
 
     describe "GET /editor/new" do
+      before do
+        deck_view.stub(:card_models).and_return([])
+      end
       it "should return an empty form" do
         page = browser.get_add_card_page
         expect(page).to be_kind_of CardEditorPage
         expect(page[:question]).to be_empty
         expect(page[:answer]).to be_empty
+      end
+
+      it "should display a list of card models by name" do
+        model_names = %w{some card model things}
+        card_models = model_names.map { |name| mock :model, id: LexicalUUID.new, name:name }
+        deck_view.stub(:card_models).and_return(card_models)
+        page = browser.get_add_card_page
+        expect(page.card_models).to be == card_models.flat_map { |m| [m.id.to_guid, m.name] }.into { |kvs| Hash[*kvs] }
       end
 
       let (:question) { "a question" }

@@ -23,6 +23,10 @@ module SRSRB
       cards[id]
     end
 
+    def card_models
+      []
+    end
+
     def enqueue_card card
       self.cards = cards.put(card.id, card)
     end

@@ -66,6 +66,10 @@ module SRSRB
       end
     end
 
+    describe "#card_models" do
+      it "Returns a list of the current card models"
+    end
+
     describe "#start!" do
       before do
         deck.enqueue_card(card)

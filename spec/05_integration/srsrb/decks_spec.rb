@@ -74,5 +74,38 @@ module SRSRB
 
       it "should validate the card data against the card's model"
     end
+
+    let (:model_id) { LexicalUUID.new }
+    let (:model_name) { "my lovely words" }
+
+    # Model operations. 
+    describe "#name_model!" do
+      it "should emit an even stating the model has been named" do
+        event_store.should_receive(:record!).with(model_id, ModelNamed.new(name: model_name))
+        decks.name_model! model_id, model_name
+      end
+      it "should disallow duplicate names"
+    end
+
+    describe "#edit_model_templates!" do
+      it "should emit an even stating the templates have changed" do
+        q_template = 'question'
+        a_template = 'answer'
+        event_store.should_receive(:record!).
+          with(model_id, ModelTemplatesChanged.new(question: q_template, answer: a_template))
+        decks.edit_model_templates! model_id, q_template, a_template
+      end
+      it "should maybe validate the templates are valid liquid templates"
+    end
+
+    describe "#add_model_field!" do
+      it "should emit an even stating the templates have changed" do
+        name = 'stuff'
+        model_id
+        event_store.should_receive(:record!).
+          with model_id, ModelFieldAdded.new(field: name)
+        decks.add_model_field! model_id, name
+      end
+    end
   end
 end

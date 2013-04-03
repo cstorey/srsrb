@@ -34,6 +34,19 @@ module SRSRB
       event_store.record! id, CardEdited.new(card_fields: data)
     end
 
+    # Model operations
+    def name_model! id, name
+      event_store.record! id, ModelNamed.new(name: name)
+    end
+
+    def edit_model_templates! id, question, answer
+      event_store.record! id, ModelTemplatesChanged.new(question: question, answer: answer)
+    end
+
+    def add_model_field! id, name
+      event_store.record! id, ModelFieldAdded.new(field: name)
+    end
+
     private
 
     def good? score

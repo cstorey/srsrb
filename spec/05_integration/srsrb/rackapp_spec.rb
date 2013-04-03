@@ -157,27 +157,58 @@ module SRSRB
         end.to_not change { model.name }.from(name)
       end
 
-      it "should submit a new model message when filled in and submitted" do
-        name = 'vocabulary'
-        fields = %w{word meaning pronounciation}
-        q_template =  "{{ word }}"
-        a_template = "{{ meaning }} -- {{ pronounciation }}" 
-        model = browser.get_add_model_page
+      context "when submitting the form" do
+        let (:name) { 'vocabulary' }
+        let (:fields) { %w{word meaning pronounciation} }
+        let (:q_template) {  "{{ word }}" }
+        let (:a_template) { "{{ meaning }} -- {{ pronounciation }}"  }
 
-        model.name = name
+        let (:model) { browser.get_add_model_page }
+        before do
+          model.name = name
 
-        fields.each do |f|
-          model.add_field f
+          fields.each do |f|
+            model.add_field f
+          end
+          model.question_template = q_template
+          model.answer_template = a_template
+
+          decks.as_null_object
         end
-        model.question_template = q_template
-        model.answer_template = a_template
 
-        decks.should_receive(:add_or_edit_model!).with(
-          an_instance_of(LexicalUUID), name: 'vocabulary', 
-          question_template: q_template, answer_template: a_template,
-          fields: fields)
+        it "should name the model" do
+          decks.should_receive(:name_model!).with(an_instance_of(LexicalUUID), name)
+          model.create!
+        end
 
-        model.create!
+        it "should set the templates for the model" do
+          decks.should_receive(:edit_model_templates!).with(an_instance_of(LexicalUUID), q_template, a_template)
+          model.create!
+        end
+
+        it "should submit a new model message when filled in and submitted" do
+          fields.each do |field|
+            decks.should_receive(:add_model_field!).with(an_instance_of(LexicalUUID), field)
+          end
+          model.create!
+        end
+
+        it "should make all deck changes with the same id" do
+          uuids = Set.new
+          decks.stub(:name_model!) { |id, *| uuids << id }
+          decks.stub(:edit_model_templates!) { |id, *| uuids << id }
+          fields.each do |field|
+            decks.stub(:add_model_field!) { |id, *| uuids << id }
+          end
+
+          model.create!
+
+          # Above, we've already demonstrated that all the appropriate decks
+          # methods get called. So, iff the set has one item, they were all
+          # called with the same argument.
+          expect(uuids).to have(1).items
+
+        end
       end
     end
 

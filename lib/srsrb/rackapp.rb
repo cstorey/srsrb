@@ -81,9 +81,13 @@ module SRSRB
       fields << params[:new_field_name] if params[:action] == 'add-field'
       model_name = params[:model_name]
       if params[:action] == 'commit'
-        decks.add_or_edit_model! LexicalUUID.new, name: params[:model_name],
-          fields: fields, question_template: params[:question],
-          answer_template: params[:answer]
+        model_id = LexicalUUID.new
+
+        decks.name_model! model_id, params[:model_name]
+        decks.edit_model_templates! model_id, params[:question], params[:answer]
+        fields.each do |f|
+          decks.add_model_field! model_id, f
+        end
       end
 
       haml :model_editor, locals: {fields: fields, model_name: model_name}

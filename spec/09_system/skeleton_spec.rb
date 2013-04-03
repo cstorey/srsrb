@@ -132,12 +132,12 @@ describe :SkeletonBehavior do
     it "should be possible to create a model and use it on a card" do
       pending "incomplete" do
       model = browser.get_add_model_page
-      model.set_name 'vocabulary'
+      model.name= 'vocabulary'
       model.add_field 'word'
       model.add_field 'meaning'
       model.add_field 'pronounciation'
-      model.set_question_template "{{ word }}"
-      model.set_answer_template "{{ meaning }} -- {{ pronounciation }}"
+      model.question_template= "{{ word }}"
+      model.answer_template= "{{ meaning }} -- {{ pronounciation }}"
       model.create!
 
       card = browser.get_add_card_page

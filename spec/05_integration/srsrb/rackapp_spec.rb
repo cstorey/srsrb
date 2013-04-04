@@ -116,6 +116,8 @@ module SRSRB
             into { |kvs| Hash[*kvs] }
           expect(page.card_models).to be == card_models_as_dictionary
         end
+
+        it "should show fields for the new model when the model is changed"
       end
 
       context "with a single model with multiple fields" do

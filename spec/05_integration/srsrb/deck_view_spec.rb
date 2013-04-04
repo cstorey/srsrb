@@ -67,7 +67,9 @@ module SRSRB
     end
 
     describe "#card_models" do
-      it "Returns a list of the current card models"
+      it "Returns the empty list by default" do
+        expect(deck.card_models).to be_empty
+      end
     end
 
     describe "#start!" do
@@ -119,6 +121,45 @@ module SRSRB
         end
         it "should set the card id" do
           expect(deck.card_for(id).id).to be == id
+        end
+      end
+
+      context "when receiving ModelNamed events" do
+        let (:id) { LexicalUUID.new }
+        let (:name) { "Jim" }
+        context "when we send one event" do
+          before do
+            event_store.subscribe_callback.call id, ModelNamed.new(name: name)
+          end
+          it "should add the a model object to the set of known models" do
+            expect(deck.card_models.size).to be == 1
+          end
+
+          it "should store the id" do
+              expect(deck.card_models.first.id).to be == id
+          end
+
+          it "should add the name" do
+              expect(deck.card_models.first.name).to be == name
+          end
+        end
+
+        context "when we send two events" do
+          before do
+            event_store.subscribe_callback.call id, ModelNamed.new(name: "Stuff")
+            event_store.subscribe_callback.call id, ModelNamed.new(name: name)
+          end
+          it "should add the a model object to the set of known models" do
+            expect(deck.card_models.size).to be == 1
+          end
+
+          it "should store the id" do
+              expect(deck.card_models.first.id).to be == id
+          end
+
+          it "should add the name" do
+              expect(deck.card_models.first.name).to be == name
+          end
         end
       end
     end

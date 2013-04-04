@@ -7,6 +7,7 @@ module SRSRB
     def initialize event_store
       self.cards = Hamster.hash
       self.event_store = event_store
+      self._card_models = Hamster.hash
     end
 
     def start!
@@ -23,12 +24,12 @@ module SRSRB
       cards[id]
     end
 
-    def card_models
-      []
-    end
-
     def enqueue_card card
       self.cards = cards.put(card.id, card)
+    end
+
+    def card_models
+      _card_models.values
     end
 
     private
@@ -36,6 +37,7 @@ module SRSRB
       case event
         when CardReviewed then handle_card_reviewed id, event
         when CardEdited then handle_card_edited id, event
+        when ModelNamed then handle_model_named id, event
       end
     end
 
@@ -56,7 +58,11 @@ module SRSRB
       self.cards = cards.put(id, card)
     end
 
-    attr_accessor :queue, :cards, :event_store
+    def handle_model_named id, event
+      self._card_models = _card_models.put id, CardModel.new(id: id, name: event.name)
+    end
+
+    attr_accessor :queue, :cards, :event_store, :_card_models
   end
 
   class Card < Hamsterdam::Struct.define(:id, :question, :answer, :review_count, :due_date)
@@ -71,5 +77,7 @@ module SRSRB
     def due_date
       super || 0
     end
+  end
+  class CardModel < Hamsterdam::Struct.define(:id, :name)
   end
 end

@@ -62,18 +62,21 @@ module SRSRB
     end
 
     def handle_model_named id, event
-      self._card_models = _card_models.put id, CardModel.new(id: id, name: event.name)
+      update_model(id) { |_| CardModel.new(id: id, name: event.name) }
+    end
+
+    def update_model id, &block
+      new_model = block.call _card_models[id]
+
+      self._card_models = _card_models.put id, new_model
       self._card_model_ids = _card_model_ids.add id if not _card_model_ids.include? id
-      pp _card_model_ids: _card_model_ids.map(&:to_guid).to_a
     end
 
     def handle_model_field_added id, event
-      if not model = _card_models[id]
-        model = CardModel.new(id: id)
-      end
-      model = model.set_fields (model.fields.add event.field)
-      self._card_models = _card_models.put id, model
-      self._card_model_ids = _card_model_ids.add id if not _card_model_ids.include? id
+      update_model(id) { |old_model|
+        model = old_model || CardModel.new(id: id)
+        model.set_fields model.fields.add(event.field)
+      }
     end
 
     attr_accessor :queue, :cards, :event_store, :_card_models, :_card_model_ids

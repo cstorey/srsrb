@@ -161,6 +161,18 @@ module SRSRB
               expect(deck.card_models.first.name).to be == name
           end
         end
+
+        context "when we send umpteen events" do
+          it "should return them in order of creation" do
+            ids = (0...10).map { LexicalUUID.new }
+
+            ids.each do |id|
+              event_store.subscribe_callback.call id, ModelNamed.new(name: id.to_guid)
+            end
+
+            expect(deck.card_models.map(&:id).map(&:to_guid).to_a).to be == ids.map(&:to_guid)
+          end
+        end
       end
 
       context "when receiving ModelFieldAdded events" do

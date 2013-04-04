@@ -9,6 +9,7 @@ module SRSRB
       self.cards = Hamster.hash
       self.event_store = event_store
       self._card_models = Hamster.hash
+      self._card_model_ids = Hamster.vector
     end
 
     def start!
@@ -30,7 +31,7 @@ module SRSRB
     end
 
     def card_models
-      _card_models.values
+      _card_model_ids.map { |id| _card_models.fetch(id) }
     end
 
     private
@@ -62,6 +63,8 @@ module SRSRB
 
     def handle_model_named id, event
       self._card_models = _card_models.put id, CardModel.new(id: id, name: event.name)
+      self._card_model_ids = _card_model_ids.add id if not _card_model_ids.include? id
+      pp _card_model_ids: _card_model_ids.map(&:to_guid).to_a
     end
 
     def handle_model_field_added id, event
@@ -70,9 +73,10 @@ module SRSRB
       end
       model = model.set_fields (model.fields.add event.field)
       self._card_models = _card_models.put id, model
+      self._card_model_ids = _card_model_ids.add id if not _card_model_ids.include? id
     end
 
-    attr_accessor :queue, :cards, :event_store, :_card_models
+    attr_accessor :queue, :cards, :event_store, :_card_models, :_card_model_ids
   end
 
   class Card < Hamsterdam::Struct.define(:id, :question, :answer, :review_count, :due_date)

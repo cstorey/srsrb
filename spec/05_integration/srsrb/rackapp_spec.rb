@@ -108,7 +108,11 @@ module SRSRB
         }
         deck_view.stub(:card_models).and_return(card_models)
         page = browser.get_add_card_page
-        expect(page.card_models).to be == card_models.to_enum.flat_map { |m| [m.id.to_guid, m.name] }.into { |kvs| Hash[*kvs] }
+        card_models_as_dictionary = card_models.
+          to_enum.
+          flat_map { |m| [m.id.to_guid, m.name] }.
+          into { |kvs| Hash[*kvs] }
+        expect(page.card_models).to be == card_models_as_dictionary 
       end
 
       let (:question) { "a question" }

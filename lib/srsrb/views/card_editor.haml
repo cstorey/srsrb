@@ -1,6 +1,6 @@
 %div#card-editor-page.page
   %form(method='POST' action='/editor/')
-    %label(for='card-model') Card model
+    %label(for='card-model') card model
     %select(id='card-model')
       - card_models.each do |id, name|
         %option{value: id}

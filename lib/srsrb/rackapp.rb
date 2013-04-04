@@ -14,6 +14,11 @@ module SRSRB
       deck = DeckViewModel.new event_store
       deck.start!
 
+      default_deck_id = LexicalUUID.new
+      deck_changes.name_model! default_deck_id, "Q&A"
+      deck_changes.add_model_field! default_deck_id, "question"
+      deck_changes.add_model_field! default_deck_id, "answer"
+
       app = self.new deck, deck_changes
     end
 
@@ -63,12 +68,13 @@ module SRSRB
       haml :card_editor, locals: {
         last_card_id: last_card_id,
         card_models: deck_view.card_models.to_enum.flat_map { |m| [m.id.to_guid, m.name] }.into { |kvs| Hash[*kvs] },
+        card_fields: deck_view.card_models.first.fields
       }
     end
 
     post '/editor/' do
-      question = params.fetch('the-question')
-      answer = params.fetch('the-answer')
+      question = params.fetch('field-question', '')
+      answer = params.fetch('field-answer', '')
       fields = Hash['question' => question, 'answer' => answer]
       id = LexicalUUID.new
 

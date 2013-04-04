@@ -126,6 +126,11 @@ module SRSRB
         flat_map { |node| [node.value, node.text] }.
         into { |kvs| Hash[*kvs] }
     end
+
+    def card_fields
+      browser.all('input.card-field').
+        map { |f| f[:id].gsub(/^field-/, '') }
+    end
   end
 
   class ModelEditorPage < Page

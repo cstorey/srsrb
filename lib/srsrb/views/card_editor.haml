@@ -5,8 +5,8 @@
       - card_models.each do |id, name|
         %option{value: id}
           &= name
-    %input(type='text' name='the-question' id='field-question' value='')
-    %input(type='text' name='the-answer' id='field-answer' value='')
+    - card_fields.each do |field|
+      %input(type='text' class='card-field' name="field-#{field}" id="field-#{field}" value='')
     %button add card
 
   -# Hack for the system tests

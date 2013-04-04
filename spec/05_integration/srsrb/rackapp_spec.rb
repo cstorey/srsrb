@@ -91,32 +91,53 @@ module SRSRB
     end
 
     describe "GET /editor/new" do
+      let (:card_fields) { %w{thing and stuff} }
+
+      let (:card_models) {
+        card_models = model_names.map { |name|
+          mock :model, id: LexicalUUID.new, name:name, fields: card_fields
+        }.inject(Hamster.set) {
+          |s, x| s.add x
+        }
+      }
+
       before do
-        deck_view.stub(:card_models).and_return(Hamster.set)
+        deck_view.stub(:card_models).and_return(card_models)
       end
+
+      context "with multiple models" do
+        let (:model_names) { %w{some card model things} }
+
+        it "should display a list of card models by name" do
+          page = browser.get_add_card_page
+          card_models_as_dictionary = card_models.
+            to_enum.
+            flat_map { |m| [m.id.to_guid, m.name] }.
+            into { |kvs| Hash[*kvs] }
+          expect(page.card_models).to be == card_models_as_dictionary
+        end
+      end
+
+      context "with a single model with multiple fields" do
+        let (:model_names) { %w{first} }
+        it "should render the card fields described by the model" do
+          page = browser.get_add_card_page
+          expect(page.card_fields).to be == card_fields
+        end
+      end
+
+      context "with a question and answer fields" do
+      let (:model_names) { %w{qanda} }
+      let (:card_fields) { %w{question answer} }
+      let (:question) { "a question" }
+      let (:answer) {  "an answer" }
+
       it "should return an empty form" do
         page = browser.get_add_card_page
         expect(page).to be_kind_of CardEditorPage
         expect(page[:question]).to be_empty
         expect(page[:answer]).to be_empty
       end
-
-      it "should display a list of card models by name" do
-        model_names = %w{some card model things}
-        card_models = model_names.map { |name| mock :model, id: LexicalUUID.new, name:name }.inject(Hamster.set) { 
-          |s, x| s.add x 
-        }
-        deck_view.stub(:card_models).and_return(card_models)
-        page = browser.get_add_card_page
-        card_models_as_dictionary = card_models.
-          to_enum.
-          flat_map { |m| [m.id.to_guid, m.name] }.
-          into { |kvs| Hash[*kvs] }
-        expect(page.card_models).to be == card_models_as_dictionary 
-      end
-
-      let (:question) { "a question" }
-      let (:answer) {  "an answer" }
 
       it "should submit a card edit message when the form is filled in and submitted" do
         page = browser.get_add_card_page
@@ -139,6 +160,7 @@ module SRSRB
       end
 
       it "should indicate a problem when the question other is missing"
+      end
     end
 
     describe "GET /model/new" do

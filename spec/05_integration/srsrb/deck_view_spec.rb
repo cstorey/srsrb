@@ -162,6 +162,22 @@ module SRSRB
           end
         end
       end
+
+      context "when receiving ModelFieldAdded events" do
+        let (:id) { LexicalUUID.new }
+
+        it "should implicitly create the model" do
+          expect do
+            event_store.subscribe_callback.call id, ModelFieldAdded.new(field: "bob")
+          end.to change { deck.card_models.size }.by 1
+        end
+
+        it "should add it to the fields in the model" do
+          event_store.subscribe_callback.call id, ModelFieldAdded.new(field: "bob")
+          expect(deck.card_models.first.fields).to have(1).items
+          expect(deck.card_models.first.fields).to include("bob")
+        end
+      end
     end
   end
 

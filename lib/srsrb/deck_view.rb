@@ -1,6 +1,7 @@
 require 'hamsterdam'
 require 'hamster/queue'
 require 'hamster/hash'
+require 'hamster/vector'
 
 module SRSRB
   class DeckViewModel
@@ -38,6 +39,7 @@ module SRSRB
         when CardReviewed then handle_card_reviewed id, event
         when CardEdited then handle_card_edited id, event
         when ModelNamed then handle_model_named id, event
+        when ModelFieldAdded then handle_model_field_added id, event
       end
     end
 
@@ -62,6 +64,14 @@ module SRSRB
       self._card_models = _card_models.put id, CardModel.new(id: id, name: event.name)
     end
 
+    def handle_model_field_added id, event
+      if not model = _card_models[id]
+        model = CardModel.new(id: id)
+      end
+      model = model.set_fields (model.fields.add event.field)
+      self._card_models = _card_models.put id, model
+    end
+
     attr_accessor :queue, :cards, :event_store, :_card_models
   end
 
@@ -78,6 +88,9 @@ module SRSRB
       super || 0
     end
   end
-  class CardModel < Hamsterdam::Struct.define(:id, :name)
+  class CardModel < Hamsterdam::Struct.define(:id, :name, :fields)
+    def fields
+      super || Hamster.vector
+    end
   end
 end

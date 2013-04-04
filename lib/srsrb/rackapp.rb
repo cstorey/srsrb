@@ -62,7 +62,7 @@ module SRSRB
       last_card_id = session.delete :last_added_card_id
       haml :card_editor, locals: {
         last_card_id: last_card_id,
-        card_models: deck_view.card_models.flat_map { |m| [m.id.to_guid, m.name] }.into { |kvs| Hash[*kvs] },
+        card_models: deck_view.card_models.to_enum.flat_map { |m| [m.id.to_guid, m.name] }.into { |kvs| Hash[*kvs] },
       }
     end
 

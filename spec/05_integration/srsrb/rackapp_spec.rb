@@ -92,7 +92,7 @@ module SRSRB
 
     describe "GET /editor/new" do
       before do
-        deck_view.stub(:card_models).and_return([])
+        deck_view.stub(:card_models).and_return(Hamster.set)
       end
       it "should return an empty form" do
         page = browser.get_add_card_page
@@ -103,10 +103,12 @@ module SRSRB
 
       it "should display a list of card models by name" do
         model_names = %w{some card model things}
-        card_models = model_names.map { |name| mock :model, id: LexicalUUID.new, name:name }
+        card_models = model_names.map { |name| mock :model, id: LexicalUUID.new, name:name }.inject(Hamster.set) { 
+          |s, x| s.add x 
+        }
         deck_view.stub(:card_models).and_return(card_models)
         page = browser.get_add_card_page
-        expect(page.card_models).to be == card_models.flat_map { |m| [m.id.to_guid, m.name] }.into { |kvs| Hash[*kvs] }
+        expect(page.card_models).to be == card_models.to_enum.flat_map { |m| [m.id.to_guid, m.name] }.into { |kvs| Hash[*kvs] }
       end
 
       let (:question) { "a question" }

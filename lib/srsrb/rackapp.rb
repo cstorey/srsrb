@@ -90,15 +90,17 @@ module SRSRB
       model_id = LexicalUUID.new(params[:model_id])
       model = deck_view.card_model(model_id)
 
-      card_models_as_dictionary = deck_view.card_models.to_enum.
-        flat_map { |model_id| [model_id.to_guid, deck_view.card_model(model_id).name] }.
-        into { |kvs| Hash[*kvs] }
-
       haml :card_editor, locals: {
         last_card_id: last_card_id,
         card_models: card_models_as_dictionary,
         card_fields: model.fields
       }
+    end
+
+    def card_models_as_dictionary
+      deck_view.card_models.to_enum.
+        flat_map { |model_id| [model_id.to_guid, deck_view.card_model(model_id).name] }.
+        into { |kvs| Hash[*kvs] }
     end
 
     post '/editor/new/:model_id' do

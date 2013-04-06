@@ -28,7 +28,7 @@ module SRSRB
     end
 
     def enqueue_card card
-      self.cards = cards.put(card.id, card)
+      update_card(card.id) { card }
     end
 
     def card_models
@@ -52,23 +52,19 @@ module SRSRB
     end
 
     def handle_card_reviewed id, event
-      card0 = cards.fetch(id)
-      card1 = card0.
-        set_review_count(card0.review_count.to_i.succ).
-        set_due_date(event.next_due_date)
-
-      self.cards = cards.put(id, card1)
+      update_card(id) { |card0|
+        card0.set_review_count(card0.review_count.to_i.succ).
+          set_due_date(event.next_due_date)
+      }
     end
 
     def handle_card_edited id, event
-      model_id = _card_model_id_by_card.fetch(id)
-      model = _card_models.find { |m| true }.last # .fetch(model_id)
-      question = model.question_template.gsub(/{{\s*(\w+)\s}}/) { |m| event.card_fields.fetch($1) }
-      answer = model.answer_template.gsub(/{{\s*(\w+)\s*}}/) { |m| event.card_fields.fetch($1) }
+      model = model_for_card_id id
 
-      card = Card.new id: id, question: question, answer: answer
+      question = model.format_question_with(event.card_fields)
+      answer = model.format_answer_with(event.card_fields)
 
-      self.cards = cards.put(id, card)
+      update_card(id) { |card| card.set_question(question).set_answer(answer) }
     end
 
     def handle_card_model_changed id, event
@@ -86,6 +82,12 @@ module SRSRB
       update_model(id) { |model| model ||= CardModel.new(id: id); model.set_name(event.name) }
     end
 
+    def update_card id, &block
+      old_card = cards.fetch(id) { Card.new id: id }
+      new_card = block.call old_card
+      self.cards = cards.put(id, new_card)
+    end
+
     def update_model id, &block
       old_model = _card_models[id]
       new_model = block.call old_model
@@ -99,6 +101,11 @@ module SRSRB
         model = old_model || CardModel.new(id: id)
         model.set_fields model.fields.add(event.field)
       }
+    end
+
+    def model_for_card_id id
+      model_id = _card_model_id_by_card.fetch(id)
+      _card_models.find { |m| true }.last
     end
 
     attr_accessor :queue, :cards, :event_store, :_card_models, :_card_model_ids, :_card_model_id_by_card
@@ -120,6 +127,18 @@ module SRSRB
   class CardModel < Hamsterdam::Struct.define(:id, :name, :fields, :question_template, :answer_template)
     def fields
       super || Hamster.vector
+    end
+
+    def format_question_with card_fields
+      format question_template, card_fields
+    end
+    def format_answer_with card_fields
+      format answer_template, card_fields
+    end
+
+    private
+    def format str, fields
+      str.gsub(/{{\s*(\w+)\s}}/) { |m| fields.fetch($1) }
     end
   end
 end

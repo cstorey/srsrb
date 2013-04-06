@@ -113,14 +113,17 @@ module SRSRB
 
 
       # Hack for the system tests
-      fields = model.fields.to_enum.flat_map { |f| [f, params["field-#{f}"]] }.into { |kvs| Hash[*kvs] }
       id = LexicalUUID.new
 
       decks.set_model_for_card! id, model_id
-      decks.add_or_edit_card! id, fields
+      decks.add_or_edit_card! id, form_fields_for_model_as_dictionary(model)
 
       session[:last_added_card_id] = id
       redirect '/editor/new', 303
+    end
+
+    def form_fields_for_model_as_dictionary model
+      fields = model.fields.to_enum.flat_map { |f| [f, params["field-#{f}"]] }.into { |kvs| Hash[*kvs] }
     end
 
     # Model editing

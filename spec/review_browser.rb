@@ -118,12 +118,13 @@ module SRSRB
     end
 
     def set_model name
-      browser.select(name, from: 'card model')
+      browser.click_link(name)
+      parent.parse
     end
 
     def card_models
-      browser.all('select#card-model option').
-        flat_map { |node| [node.value, node.text] }.
+      browser.all('ul#card-models li').
+        flat_map { |node| [node[:id].gsub(/^card-model-/, ''), node.text] }.
         into { |kvs| Hash[*kvs] }
     end
 

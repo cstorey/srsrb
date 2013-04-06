@@ -1,10 +1,11 @@
 %div#card-editor-page.page
   %form(method='POST' action='/editor/')
     %label(for='card-model') card model
-    %select(id='card-model')
+    %ul(id='card-models')
       - card_models.each do |id, name|
-        %option{value: id}
-          &= name
+        %li{id: "card-model-#{id}"}
+          %a{href: "/editor/new/#{id}"}
+            &= name
     - card_fields.each do |field|
       %input(type='text' class='card-field' name="field-#{field}" id="field-#{field}" value='')
     %button add card

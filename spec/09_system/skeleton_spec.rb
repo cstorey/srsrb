@@ -144,8 +144,10 @@ describe :SkeletonBehavior do
       card.set_model 'vocabulary'
       card[:word] = "fish"
       card[:meaning] = "damp animal"
-      card[:meaning] = "ffu-issh-uh"
+      card[:pronounciation] = "ffu-issh-uh"
       confirmation = card.add_card!
+
+      then_cards_should_use_the_new_model
       end
     end
     it "should be possible to add fields a model"

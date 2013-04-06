@@ -91,12 +91,15 @@ module SRSRB
     end
 
     describe "GET /editor/new" do
-      let (:card_fields) { %w{thing and stuff} }
+      let (:card_fields) { 
+          Hash['qanda' => %w{question answer},
+               'vocabulary' => %w{word meaning pronounciation}]
+      }
 
       let (:card_models) {
         card_models = model_names.map { |name|
-          mock :model, id: LexicalUUID.new, name:name, fields: card_fields
-        }.inject(Hamster.set) {
+          OpenStruct.new id: LexicalUUID.new, name:name, fields: card_fields.fetch(name)
+        }.inject(Hamster.vector) {
           |s, x| s.add x
         }
       }
@@ -106,7 +109,7 @@ module SRSRB
       end
 
       context "with multiple models" do
-        let (:model_names) { %w{some card model things} }
+        let (:model_names) { %w{qanda vocabulary} }
 
         it "should display a list of card models by name" do
           page = browser.get_add_card_page
@@ -117,20 +120,32 @@ module SRSRB
           expect(page.card_models).to be == card_models_as_dictionary
         end
 
-        it "should show fields for the new model when the model is changed"
+        it "should use a given default model" do
+          page = browser.get_add_card_page
+          expect(page.card_fields).to be == card_fields.fetch('qanda')
+        end
+
+        it "should show fields for the new model when the model is changed" do
+          page = browser.get_add_card_page
+          expect do
+            page = page.set_model 'vocabulary'
+          end.to change { page.card_fields.tap { |f| pp card_fields: f, models: page.card_models } }.
+            from(card_fields.fetch('qanda')).
+            to(card_fields.fetch('vocabulary'))
+        end
       end
 
       context "with a single model with multiple fields" do
-        let (:model_names) { %w{first} }
+        let (:model_names) { %w{vocabulary} }
         it "should render the card fields described by the model" do
+          model_name = model_names.first
           page = browser.get_add_card_page
-          expect(page.card_fields).to be == card_fields
+          expect(page.card_fields).to be == card_fields.fetch(model_name)
         end
       end
 
       context "with a question and answer fields" do
       let (:model_names) { %w{qanda} }
-      let (:card_fields) { %w{question answer} }
       let (:question) { "a question" }
       let (:answer) {  "an answer" }
 

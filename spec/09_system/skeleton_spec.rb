@@ -5,7 +5,7 @@ require 'json'
 require 'review_browser'
 
 describe :SkeletonBehavior do
-  let (:plain_app) { SRSRB::RackApp.assemble }
+  let (:plain_app) { SRSRB::SystemTestHackApi.assemble }
   let (:app) { plain_app } # { Rack::CommonLogger.new plain_app, $stderr }
   let (:rtsess) { Rack::Test::Session.new(Rack::MockSession.new(app)) }
   let (:browser) { SRSRB::ReviewBrowser.new app }

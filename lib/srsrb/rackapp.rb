@@ -14,7 +14,7 @@ module SRSRB
       deck = DeckViewModel.new event_store
       deck.start!
 
-      app = self.new deck, deck_changes
+      self.new deck, deck_changes
     end
 
     def initialize deck_view, decks
@@ -143,9 +143,52 @@ module SRSRB
       haml :model_editor, locals: {fields: fields, model_name: model_name}
     end
 
-    # Hack for system tests
+    private
+
+    def current_day
+      session[:current_day] || 0
+    end
+
+    attr_accessor :deck_view, :decks
+  end
+
+  class SystemTestHackApi < Sinatra::Base
+    def initialize child, deck_view, decks
+      @child = child
+      super child
+      self.deck_view = deck_view
+      self.decks = decks
+    end
+
+    def self.assemble
+      event_store = EventStore.new
+      deck_changes = Decks.new event_store
+      deck = DeckViewModel.new event_store
+      deck.start!
+
+      parent_app = RackApp.new deck, deck_changes
+      self.new(parent_app, deck, deck_changes)
+    end
+
+    use Rack::Session::Cookie, :key => 'rack.session',
+                           #:domain => 'foo.com',
+                           :path => '/',
+                           :expire_after => 2592000, # In seconds
+                           :secret => 'change_me'
+
+
     get '/raw-cards/:id' do
       raw_card_json_hack
+    end
+    #
+    # Hack for system tests
+    get '/review-upto' do
+      set_review_upto_day!
+    end
+
+    # Hack for system tests
+    put '/editor/raw' do
+      inject_model_with_cards!
     end
 
     def raw_card_json_hack
@@ -155,19 +198,9 @@ module SRSRB
       JSON.unparse(card.as_json)
     end
 
-    # Hack for system tests
-    get '/review-upto' do
-      set_review_upto_day!
-    end
-
     def set_review_upto_day!
       day = Integer(params[:day])
       self.current_day = day
-    end
-
-    # Hack for system tests
-    put '/editor/raw' do
-      inject_model_with_cards!
     end
 
     def inject_model_with_cards!
@@ -194,11 +227,6 @@ module SRSRB
     end
 
     private
-
-    def current_day
-      session[:current_day] || 0
-    end
-
     def current_day= day
       session[:current_day] = day
     end

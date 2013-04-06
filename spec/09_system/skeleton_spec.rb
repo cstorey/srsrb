@@ -31,10 +31,12 @@ describe :SkeletonBehavior do
   end
 
   def with_default_cards range
-    payload = range.map { |x| { id: LexicalUUID.new.to_guid, data: { question: "question #{x}", answer: "answer #{x}" } } }
-    rtsess.put '/editor/raw', JSON.unparse(payload)
+    model_id = LexicalUUID.new
+    model = { id: model_id.to_guid, fields: %w{question answer} }
+    cards = range.map { |x| { id: LexicalUUID.new.to_guid, data: { question: "question #{x}", answer: "answer #{x}" } } }
+    rtsess.put '/editor/raw', JSON.unparse(model: model, cards:  cards)
     expect(rtsess.last_response).to be_ok
-    payload.map { |x| LexicalUUID.new x.fetch(:id) }
+    cards.map { |x| LexicalUUID.new x.fetch(:id) }
   end
 
   def perform_reviews_for_day reviews, day, questions={}, answers={}
@@ -111,6 +113,7 @@ describe :SkeletonBehavior do
 
   context "for card editing" do
     it "should allow adding new cards" do
+      with_default_cards 0...0
       card = browser.get_add_card_page
       card[:question] = "Hello"
       card[:answer] = "Goodbye"

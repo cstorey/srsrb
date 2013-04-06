@@ -1,5 +1,5 @@
 %div#card-editor-page.page
-  %form(method='POST' action='/editor/')
+  %form(method='POST')
     %label(for='card-model') card model
     %ul(id='card-models')
       - card_models.each do |id, name|

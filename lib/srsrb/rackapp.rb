@@ -14,11 +14,6 @@ module SRSRB
       deck = DeckViewModel.new event_store
       deck.start!
 
-      default_deck_id = LexicalUUID.new
-      deck_changes.name_model! default_deck_id, "Q&A"
-      deck_changes.add_model_field! default_deck_id, "question"
-      deck_changes.add_model_field! default_deck_id, "answer"
-
       app = self.new deck, deck_changes
     end
 
@@ -85,7 +80,10 @@ module SRSRB
       }
     end
 
-    post '/editor/' do
+    post '/editor/new/:model_id' do
+      model_id = LexicalUUID.new(params[:model_id])
+      model = deck_view.card_model(model_id)
+
       question = params.fetch('field-question', '')
       answer = params.fetch('field-answer', '')
       fields = Hash['question' => question, 'answer' => answer]
@@ -94,6 +92,7 @@ module SRSRB
       # Hack for the system tests
       session[:last_added_card_id] = id
 
+      decks.set_model_for_card! id, model_id
       decks.add_or_edit_card! id, fields
       redirect '/editor/new', 303
     end
@@ -133,11 +132,16 @@ module SRSRB
     # Hack for system tests
     put '/editor/raw' do
       data = JSON.parse(request.body.read)
-      data.each do |item|
-        fail unless item.kind_of? Hash
+      model_id = LexicalUUID.new(data.fetch('model').fetch('id'))
+      data.fetch('model').fetch('fields').each do |f|
+        decks.add_model_field! model_id, f
+      end
+      data.fetch("cards").each do |item|
+        fail "Found #{item.inspect}, expected dictionary" unless item.kind_of? Hash
         guid = item.fetch("id")
         id = LexicalUUID.new(guid)
         fields = item.fetch("data")
+        decks.set_model_for_card! id, model_id
         decks.add_or_edit_card! id, fields
       end
 

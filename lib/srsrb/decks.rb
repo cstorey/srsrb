@@ -2,12 +2,14 @@ require 'srsrb/events'
 require 'hamster/hash'
 
 module SRSRB
+  class FieldMissingException < RuntimeError; end
   class Decks
     def initialize event_store
       self.event_store = event_store
       self.next_due_dates = Hamster.hash
       self.intervals = Hamster.hash
       self.model_ids_by_card = Hamster.hash
+      self.fields_by_model = Hamster.hash
     end
 
     def score_card! card_id, score
@@ -32,6 +34,11 @@ module SRSRB
     end
 
     def add_or_edit_card! id, data
+      model_id = model_ids_by_card.fetch(id) { fail "Missing model for card #{id.to_guid} " }
+      expected_fields = fields_by_model.fetch(model_id) { fail "Missing fields for model #{model_id.to_guid}" }
+      missing_fields = (expected_fields - data.keys)
+      raise FieldMissingException if not missing_fields.empty?
+
       event_store.record! id, CardEdited.new(card_fields: data)
     end
 
@@ -51,6 +58,8 @@ module SRSRB
 
     def add_model_field! id, name
       event_store.record! id, ModelFieldAdded.new(field: name)
+      old_model_fields = fields_by_model.fetch(id) { Hamster.set }
+      self.fields_by_model = fields_by_model.put(id, old_model_fields.add(name))
     end
 
     private

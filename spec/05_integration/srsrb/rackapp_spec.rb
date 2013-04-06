@@ -132,7 +132,7 @@ module SRSRB
           page = browser.get_add_card_page
           expect do
             page = page.set_model 'vocabulary'
-          end.to change { page.card_fields.tap { |f| pp card_fields: f, models: page.card_models } }.
+          end.to change { page.card_fields }.
             from(card_fields.fetch('qanda')).
             to(card_fields.fetch('vocabulary'))
         end
@@ -151,6 +151,7 @@ module SRSRB
       let (:model_names) { %w{qanda} }
       let (:question) { "a question" }
       let (:answer) {  "an answer" }
+      let (:default_model_id) { card_models.first.id }
 
       it "should return an empty form" do
         page = browser.get_add_card_page
@@ -159,18 +160,19 @@ module SRSRB
         expect(page[:answer]).to be_empty
       end
 
-      it "should submit a card edit message when the form is filled in and submitted" do
+      it "should submit a card edit message and set the card_model when the form is filled in and submitted" do
         page = browser.get_add_card_page
         page[:question] = "a question"
         page[:answer] = "an answer"
 
+        decks.should_receive(:set_model_for_card!).with(an_instance_of(LexicalUUID), default_model_id)
         decks.should_receive(:add_or_edit_card!).with(an_instance_of(LexicalUUID), { 'question' => question, 'answer' => answer })
 
         page.add_card!
       end
 
       it "should include the id of the previously added card for the system tests" do 
-        decks.stub(:add_or_edit_card!)
+        decks.as_null_object
         page = browser.get_add_card_page
         page[:question] = "a question"
         page[:answer] = "an answer"
@@ -294,16 +296,35 @@ module SRSRB
     end
 
     describe "PUT /editor/raw" do
+      let (:model_id) { LexicalUUID.new }
+      let (:model_fields) { %w{foo bar baz} }
       let (:card_data) { [
-        {id: LexicalUUID.new, data:  { 'question' =>  "foo", 'answer' =>  "bar" } },
-        {id: LexicalUUID.new, data:  { 'question' =>  "baz", 'answer' =>  "qux" } },
+        {id: LexicalUUID.new, data: { 'question' =>  "foo", 'answer' =>  "bar" } },
+        {id: LexicalUUID.new, data: { 'question' =>  "baz", 'answer' =>  "qux" } },
       ] }
-      it "should create one card for each item" do
+
+      let (:model_json) { { id: model_id.to_guid, fields: model_fields } }
+
+      it "should create a model for each card item" do
+        model_fields.each do |f|
+          decks.should_receive(:add_model_field!).with(model_id, f)
+        end
+
+        rtsess.put "/editor/raw", JSON.unparse(model: model_json, cards: [])
+        expect(rtsess.last_response).to be_ok
+      end
+
+      it "should create one card for each card item" do
+        decks.stub(:add_model_field!)
         card_data.each do |d|
+          decks.should_receive(:set_model_for_card!).with(d.fetch(:id), model_id)
           decks.should_receive(:add_or_edit_card!).with(d.fetch(:id), d.fetch(:data))
         end
 
-        rtsess.put "/editor/raw", JSON.unparse(card_data.map { |r| r.merge(id: r.fetch(:id).to_guid) })
+        card_json = card_data.map { |r|
+          r.merge(id: r.fetch(:id).to_guid)
+        }
+        rtsess.put "/editor/raw", JSON.unparse(model: model_json, cards: card_json)
         expect(rtsess.last_response).to be_ok
       end
     end

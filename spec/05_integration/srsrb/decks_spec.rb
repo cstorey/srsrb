@@ -74,14 +74,28 @@ module SRSRB
 
     describe "#add_or_edit_card!" do
       let (:card_id) { LexicalUUID.new }
+      let (:model_id) { LexicalUUID.new }
       let (:card_fields) { { "stuff" => "things", "gubbins" => "cheese" } }
 
+      before do
+        event_store.as_null_object
+
+        card_fields.each do |f, _|
+          decks.add_model_field! model_id, f
+        end
+        decks.set_model_for_card! card_id, model_id
+      end
       it "should record the score, and card in the event store" do
         event_store.should_receive(:record!).with(card_id, CardEdited.new(card_fields: card_fields))
         decks.add_or_edit_card! card_id, card_fields
       end
 
-      it "should validate the card data against the card's model"
+      it "should fail if the card is missing a field" do
+        card_fields.delete('stuff')
+        expect do
+          decks.add_or_edit_card! card_id, card_fields
+        end.to raise_error(FieldMissingException)
+      end
     end
 
     let (:model_id) { LexicalUUID.new }

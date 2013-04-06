@@ -15,9 +15,9 @@ describe :SkeletonBehavior do
   end
 
   before do
-    SRSRB::RackApp.set :raise_errors, true
-    SRSRB::RackApp.set :dump_errors, false
-    SRSRB::RackApp.set :show_exceptions, false
+    SRSRB::ReviewsApp.set :raise_errors, true
+    SRSRB::ReviewsApp.set :dump_errors, false
+    SRSRB::ReviewsApp.set :show_exceptions, false
   end
 
   def card_should_have_been_reviewed opts

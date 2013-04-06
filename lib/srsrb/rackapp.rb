@@ -7,17 +7,19 @@ require 'lexical_uuid'
 require 'haml'
 
 module SRSRB
-  class RackApp < Sinatra::Base
+  module RackApp
     def self.assemble
       event_store = EventStore.new
       deck_changes = Decks.new event_store
       deck = DeckViewModel.new event_store
       deck.start!
 
-      self.new deck, deck_changes
+      ReviewsApp.new deck, deck_changes
     end
+  end
 
-    def initialize deck_view, decks
+  class ReviewsApp < Sinatra::Base
+    def initialize deck_view, decks, child=nil
       super nil
       self.deck_view = deck_view
       self.decks = decks
@@ -180,7 +182,7 @@ module SRSRB
       deck = DeckViewModel.new event_store
       deck.start!
 
-      parent_app = RackApp.new deck, deck_changes
+      parent_app = ReviewsApp.new deck, deck_changes
       self.new(parent_app, deck, deck_changes)
     end
 

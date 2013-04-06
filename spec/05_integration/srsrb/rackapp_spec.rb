@@ -7,10 +7,10 @@ require 'review_browser'
 require 'rack/test'
 
 module SRSRB
-  describe RackApp do
+  describe ReviewsApp do
     let (:deck_view) { mock(:deck_view_model) }
     let (:decks) { mock(:decks) }
-    let (:plain_app) { RackApp.new deck_view, decks }
+    let (:plain_app) { ReviewsApp.new deck_view, decks }
     let (:app) { plain_app } # Rack::CommonLogger.new plain_app, $stderr }
     let (:browser) { ReviewBrowser.new app }
 
@@ -298,7 +298,7 @@ module SRSRB
   describe SystemTestHackApi do
     let (:deck_view) { mock(:deck_view_model) }
     let (:decks) { mock(:decks) }
-    let (:parent_app) { RackApp.new deck_view, decks }
+    let (:parent_app) { ReviewsApp.new deck_view, decks }
     let (:plain_app) { SystemTestHackApi.new(parent_app, deck_view, decks) }
     let (:app) { plain_app } # Rack::CommonLogger.new plain_app, $stderr }
     let (:browser) { ReviewBrowser.new app }

@@ -63,6 +63,15 @@ module SRSRB
       end
     end
 
+    describe "#set_model_for_card!" do
+      let (:card_id) { LexicalUUID.new }
+      let (:new_model_id) { LexicalUUID.new }
+      it "should record the change in the event store" do
+        event_store.should_receive(:record!).with(card_id, CardModelChanged.new(model_id: new_model_id))
+        decks.set_model_for_card! card_id, new_model_id
+      end
+    end
+
     describe "#add_or_edit_card!" do
       let (:card_id) { LexicalUUID.new }
       let (:card_fields) { { "stuff" => "things", "gubbins" => "cheese" } }

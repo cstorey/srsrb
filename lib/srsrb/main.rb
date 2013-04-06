@@ -15,7 +15,6 @@ module SRSRB
         end
         value
       end
-      pp instance_methods: instance_methods(false)
     end
   end
 

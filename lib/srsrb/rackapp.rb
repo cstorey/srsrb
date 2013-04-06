@@ -1,25 +1,9 @@
 require 'sinatra/base'
-require 'srsrb/deck_view'
-require 'srsrb/decks'
-require 'srsrb/event_store'
-require 'srsrb/object_patch'
 require 'lexical_uuid'
+require 'srsrb/object_patch'
 require 'haml'
 
 module SRSRB
-  module RackApp
-    def self.assemble
-      event_store = EventStore.new
-      deck_changes = Decks.new event_store
-      deck = DeckViewModel.new event_store
-      deck.start!
-
-      app = ReviewsApp.new deck, deck_changes
-      app = CardEditorApp.new deck, deck_changes, app
-      ModelEditorApp.new deck, deck_changes, app
-    end
-  end
-
   class ReviewsApp < Sinatra::Base
     def initialize deck_view, decks, child=nil
       super child
@@ -211,18 +195,6 @@ module SRSRB
       super child
       self.deck_view = deck_view
       self.decks = decks
-    end
-
-    def self.assemble
-      event_store = EventStore.new
-      deck_changes = Decks.new event_store
-      deck = DeckViewModel.new event_store
-      deck.start!
-
-      app = ReviewsApp.new deck, deck_changes
-      app = CardEditorApp.new deck, deck_changes, app
-      app = ModelEditorApp.new deck, deck_changes, app
-      self.new(app, deck, deck_changes)
     end
 
     use Rack::Session::Cookie, :key => 'rack.session',

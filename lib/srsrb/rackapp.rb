@@ -31,6 +31,10 @@ module SRSRB
 
 
     get '/reviews/' do
+      show_next_question
+    end
+
+    def show_next_question
       card = deck_view.next_card_upto current_day
       if card 
         haml :question, locals: {card: card}
@@ -40,6 +44,10 @@ module SRSRB
     end
 
     get '/reviews/:id' do
+      show_answer_for_id
+    end
+
+    def show_answer_for_id
       id = LexicalUUID.new params.fetch('id')
       card = deck_view.card_for(id)
       haml :answer, locals: {card: card}
@@ -50,7 +58,12 @@ module SRSRB
       'poor' => :poor,
       'fail' => :fail,
     }
+
     post '/reviews/:id' do
+      score_card!
+    end
+
+    def score_card!
       score = SCORES.fetch(params.fetch('score'))
       id = LexicalUUID.new params.fetch('id')
       decks.score_card! id, score
@@ -58,11 +71,19 @@ module SRSRB
     end
 
     get '/editor/new' do
+      show_card_edit_form_for_default_model
+    end
+
+    def show_card_edit_form_for_default_model
       model_id = deck_view.card_models.first
       redirect "/editor/new/#{model_id.to_guid}", 303
     end
 
     get '/editor/new/:model_id' do
+      show_card_edit_form_for_model
+    end
+
+    def show_card_edit_form_for_model
       # Hack for the system tests
       last_card_id = session.delete :last_added_card_id
 
@@ -81,6 +102,10 @@ module SRSRB
     end
 
     post '/editor/new/:model_id' do
+      add_new_card!
+    end
+
+    def add_new_card!
       model_id = LexicalUUID.new(params[:model_id])
       model = deck_view.card_model(model_id)
 
@@ -98,6 +123,10 @@ module SRSRB
 
     # Model editing
     get '/model/new' do
+      show_new_model_form
+    end
+
+    def show_new_model_form
       fields = [params[:field_name]].flatten.reject(&:nil?).reject(&:empty?)
       fields << params[:new_field_name] if params[:action] == 'add-field'
       model_name = params[:model_name]
@@ -116,6 +145,10 @@ module SRSRB
 
     # Hack for system tests
     get '/raw-cards/:id' do
+      raw_card_json_hack
+    end
+
+    def raw_card_json_hack
       content_type :json
       id = LexicalUUID.new params.fetch('id')
       card = deck_view.card_for id
@@ -124,12 +157,20 @@ module SRSRB
 
     # Hack for system tests
     get '/review-upto' do
+      set_review_upto_day!
+    end
+
+    def set_review_upto_day!
       day = Integer(params[:day])
       self.current_day = day
     end
 
     # Hack for system tests
     put '/editor/raw' do
+      inject_model_with_cards!
+    end
+
+    def inject_model_with_cards!
       data = JSON.parse(request.body.read)
       model = data.fetch('model')
       model_id = LexicalUUID.new(model.fetch('id'))

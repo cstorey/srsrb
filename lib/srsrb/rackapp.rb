@@ -84,16 +84,15 @@ module SRSRB
       model_id = LexicalUUID.new(params[:model_id])
       model = deck_view.card_model(model_id)
 
-      question = params.fetch('field-question', '')
-      answer = params.fetch('field-answer', '')
-      fields = Hash['question' => question, 'answer' => answer]
-      id = LexicalUUID.new
 
       # Hack for the system tests
-      session[:last_added_card_id] = id
+      fields = model.fields.to_enum.flat_map { |f| [f, params["field-#{f}"]] }.into { |kvs| Hash[*kvs] }
+      id = LexicalUUID.new
 
       decks.set_model_for_card! id, model_id
       decks.add_or_edit_card! id, fields
+
+      session[:last_added_card_id] = id
       redirect '/editor/new', 303
     end
 
@@ -132,10 +131,15 @@ module SRSRB
     # Hack for system tests
     put '/editor/raw' do
       data = JSON.parse(request.body.read)
-      model_id = LexicalUUID.new(data.fetch('model').fetch('id'))
-      data.fetch('model').fetch('fields').each do |f|
+      model = data.fetch('model')
+      model_id = LexicalUUID.new(model.fetch('id'))
+      model.fetch('fields').each do |f|
         decks.add_model_field! model_id, f
       end
+
+      decks.edit_model_templates!(model_id, model.fetch('question_template'), model.fetch('answer_template'))
+
+
       data.fetch("cards").each do |item|
         fail "Found #{item.inspect}, expected dictionary" unless item.kind_of? Hash
         guid = item.fetch("id")

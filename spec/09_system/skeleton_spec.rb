@@ -32,7 +32,9 @@ describe :SkeletonBehavior do
 
   def with_default_cards range
     model_id = LexicalUUID.new
-    model = { id: model_id.to_guid, fields: %w{question answer} }
+    model = { id: model_id.to_guid, fields: %w{question answer},
+      question_template: '{{ question }}', answer_template: '{{ answer }}'
+    }
     cards = range.map { |x| { id: LexicalUUID.new.to_guid, data: { question: "question #{x}", answer: "answer #{x}" } } }
     rtsess.put '/editor/raw', JSON.unparse(model: model, cards:  cards)
     expect(rtsess.last_response).to be_ok
@@ -133,7 +135,6 @@ describe :SkeletonBehavior do
 
   context "for card models" do
     it "should be possible to create a model and use it on a card" do
-      pending "incomplete" do
       model = browser.get_add_model_page
       model.name= 'vocabulary'
       model.add_field 'word'
@@ -150,8 +151,11 @@ describe :SkeletonBehavior do
       card[:pronounciation] = "ffu-issh-uh"
       confirmation = card.add_card!
 
-      then_cards_should_use_the_new_model
-      end
+      page = browser.get_reviews_top
+      question = page.question_text
+      answer = page.show_answer.answer_text
+      expect({question: question, answer: answer}).to be ==
+        {question: "fish", answer: "damp animal -- ffu-issh-uh"}
     end
     it "should be possible to add fields a model"
     it "should be possible to remove fields from a model"

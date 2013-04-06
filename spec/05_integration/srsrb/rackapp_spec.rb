@@ -98,11 +98,12 @@ module SRSRB
 
       let (:card_models) {
         card_models = model_names.map { |name|
-          OpenStruct.new id: LexicalUUID.new, name:name, fields: card_fields.fetch(name)
+          OpenStruct.new id: LexicalUUID.new, name:name, fields: Hamster.vector(*card_fields.fetch(name))
         }.inject(Hamster.vector) {
           |s, x| s.add x
         }
       }
+      let (:default_model_id) { card_models.first.id }
 
       before do
         deck_view.stub(:card_models).and_return(card_models.map(&:id))
@@ -145,13 +146,31 @@ module SRSRB
           page = browser.get_add_card_page
           expect(page.card_fields).to be == card_fields.fetch(model_name)
         end
+
+        it "should submit the card edit with the fields described in the model" do
+          model_name = model_names.first
+          page = browser.get_add_card_page
+          page[:word] = "a word"
+          page[:meaning] = "the meaning"
+          page[:pronounciation] = "how it sounds"
+          decks.should_receive(:add_or_edit_card!).
+            with an_instance_of(LexicalUUID), {
+            "word" => "a word",
+            "meaning" => "the meaning",
+            "pronounciation" => "how it sounds",
+          }
+          decks.should_receive(:set_model_for_card!).with(an_instance_of(LexicalUUID), default_model_id)
+
+          page.add_card!
+        end
+
+        it "should validate that all fields are present"
       end
 
       context "with a question and answer fields" do
       let (:model_names) { %w{qanda} }
       let (:question) { "a question" }
       let (:answer) {  "an answer" }
-      let (:default_model_id) { card_models.first.id }
 
       it "should return an empty form" do
         page = browser.get_add_card_page
@@ -303,9 +322,19 @@ module SRSRB
         {id: LexicalUUID.new, data: { 'question' =>  "baz", 'answer' =>  "qux" } },
       ] }
 
-      let (:model_json) { { id: model_id.to_guid, fields: model_fields } }
+      let (:q_tmpl) { 'question template' }
+      let (:a_tmpl) { 'answer template' }
 
-      it "should create a model for each card item" do
+      let (:model_json) { {
+        id: model_id.to_guid, fields: model_fields,
+        question_template: q_tmpl, answer_template: a_tmpl
+      } }
+
+      before do
+        decks.as_null_object
+      end
+
+      it "should create model fields" do
         model_fields.each do |f|
           decks.should_receive(:add_model_field!).with(model_id, f)
         end
@@ -314,8 +343,15 @@ module SRSRB
         expect(rtsess.last_response).to be_ok
       end
 
+      it "should create model fields" do
+        decks.should_receive(:edit_model_templates!).with(model_id, q_tmpl, a_tmpl)
+
+        rtsess.put "/editor/raw", JSON.unparse(model: model_json, cards: [])
+        expect(rtsess.last_response).to be_ok
+      end
+
+
       it "should create one card for each card item" do
-        decks.stub(:add_model_field!)
         card_data.each do |d|
           decks.should_receive(:set_model_for_card!).with(d.fetch(:id), model_id)
           decks.should_receive(:add_or_edit_card!).with(d.fetch(:id), d.fetch(:data))

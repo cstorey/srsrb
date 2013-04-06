@@ -98,10 +98,17 @@ module SRSRB
 
       context "when receiving CardEdited events" do
         let (:id) { LexicalUUID.new }
-        let (:question) { "Why is a cow?" }
-        let (:answer) { "Mu" }
-        let (:card_fields) { { "question" => question, "answer" => answer } }
+        let (:model_id) { LexicalUUID.new }
+        let (:card_fields) { { "word" => "fish", "meaning" => "wet thing", "sound" => "ffish" } }
         before do
+          card_fields.each do |field, _|
+            event_store.subscribe_callback.call model_id, ModelFieldAdded.new(field: field)
+          end
+
+          event_store.subscribe_callback.call model_id,
+            ModelTemplatesChanged.new(question: '{{ word }}', answer: '{{ meaning }} {{ sound }}')
+
+          event_store.subscribe_callback.call id, CardModelChanged.new(model_id: model_id)
           event_store.subscribe_callback.call id, CardEdited.new(card_fields: card_fields)
         end
 
@@ -110,10 +117,11 @@ module SRSRB
         end
 
         it "should preserve the question" do
-          expect(deck.card_for(id).question).to be == question
+          card = deck.card_for(id)
+          expect(card.question).to be == "fish"
         end
         it "should preserve the answer" do
-          expect(deck.card_for(id).answer).to be == answer
+          expect(deck.card_for(id).answer).to be == "wet thing ffish"
         end
 
         it "should set the due-date to zero" do

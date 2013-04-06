@@ -10,6 +10,7 @@ module SRSRB
       self.event_store = event_store
       self._card_models = Hamster.hash
       self._card_model_ids = Hamster.vector
+      self._card_model_id_by_card = Hamster.hash
     end
 
     def start!
@@ -43,8 +44,10 @@ module SRSRB
       case event
         when CardReviewed then handle_card_reviewed id, event
         when CardEdited then handle_card_edited id, event
+        when CardModelChanged then handle_card_model_changed id, event
         when ModelNamed then handle_model_named id, event
         when ModelFieldAdded then handle_model_field_added id, event
+        when ModelTemplatesChanged then handle_model_templates_changed id, event
       end
     end
 
@@ -58,19 +61,34 @@ module SRSRB
     end
 
     def handle_card_edited id, event
-      card = Card.new id: id,
-          question: event.card_fields.fetch('question'), 
-          answer: event.card_fields.fetch('answer')
+      model_id = _card_model_id_by_card.fetch(id)
+      model = _card_models.find { |m| true }.last # .fetch(model_id)
+      question = model.question_template.gsub(/{{\s*(\w+)\s}}/) { |m| event.card_fields.fetch($1) }
+      answer = model.answer_template.gsub(/{{\s*(\w+)\s*}}/) { |m| event.card_fields.fetch($1) }
+
+      card = Card.new id: id, question: question, answer: answer
 
       self.cards = cards.put(id, card)
     end
 
+    def handle_card_model_changed id, event
+      self._card_model_id_by_card = _card_model_id_by_card.put(id, event.model_id)
+    end
+
+    def handle_model_templates_changed id, event
+      update_model(id) { |model| 
+        model ||= CardModel.new id: id
+        model.set_question_template(event.question).set_answer_template(event.answer)
+      }
+    end
+
     def handle_model_named id, event
-      update_model(id) { |_| CardModel.new(id: id, name: event.name) }
+      update_model(id) { |model| model ||= CardModel.new(id: id); model.set_name(event.name) }
     end
 
     def update_model id, &block
-      new_model = block.call _card_models[id]
+      old_model = _card_models[id]
+      new_model = block.call old_model
 
       self._card_models = _card_models.put id, new_model
       self._card_model_ids = _card_model_ids.add id if not _card_model_ids.include? id
@@ -83,7 +101,7 @@ module SRSRB
       }
     end
 
-    attr_accessor :queue, :cards, :event_store, :_card_models, :_card_model_ids
+    attr_accessor :queue, :cards, :event_store, :_card_models, :_card_model_ids, :_card_model_id_by_card
   end
 
   class Card < Hamsterdam::Struct.define(:id, :question, :answer, :review_count, :due_date)
@@ -99,7 +117,7 @@ module SRSRB
       super || 0
     end
   end
-  class CardModel < Hamsterdam::Struct.define(:id, :name, :fields)
+  class CardModel < Hamsterdam::Struct.define(:id, :name, :fields, :question_template, :answer_template)
     def fields
       super || Hamster.vector
     end

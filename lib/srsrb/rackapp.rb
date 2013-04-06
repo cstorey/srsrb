@@ -150,7 +150,9 @@ module SRSRB
 
     def model_fields_from_form
       @model_fields_from_form ||= begin
-        fields = [params[:field_name]].flatten.reject(&:nil?).reject(&:empty?)
+        fields = params[:field_name] || []
+        fields.reject!(&:nil?)
+        fields.reject!(&:empty?)
         fields << params[:new_field_name] if params[:action] == 'add-field'
         fields
       end

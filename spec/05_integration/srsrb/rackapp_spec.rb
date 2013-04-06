@@ -90,6 +90,26 @@ module SRSRB
       end
 
     end
+  end
+
+  describe CardEditorApp do
+    let (:deck_view) { mock(:deck_view_model) }
+    let (:decks) { mock(:decks) }
+    let (:plain_app) { CardEditorApp.new deck_view, decks }
+    let (:app) { Rack::CommonLogger.new plain_app, $stderr }
+    let (:browser) { ReviewBrowser.new app }
+
+    let (:card) { OpenStruct.new(
+      id: LexicalUUID.new, question: 'a question 1', answer: 'the answer',
+      as_json: {'canary' => true})
+    }
+
+    before do
+      described_class.set :raise_errors, true
+      described_class.set :dump_errors, false
+      described_class.set :show_exceptions, false
+      deck_view.stub(:next_card_upto)
+    end
 
     describe "GET /editor/new" do
       let (:card_fields) { 
@@ -203,6 +223,26 @@ module SRSRB
 
       it "should indicate a problem when the question other is missing"
       end
+    end
+  end
+
+  describe ModelEditorApp do
+    let (:deck_view) { mock(:deck_view_model) }
+    let (:decks) { mock(:decks) }
+    let (:plain_app) { ModelEditorApp.new deck_view, decks }
+    let (:app) { Rack::CommonLogger.new plain_app, $stderr }
+    let (:browser) { ReviewBrowser.new app }
+
+    let (:card) { OpenStruct.new(
+      id: LexicalUUID.new, question: 'a question 1', answer: 'the answer',
+      as_json: {'canary' => true})
+    }
+
+    before do
+      described_class.set :raise_errors, true
+      described_class.set :dump_errors, false
+      described_class.set :show_exceptions, false
+      deck_view.stub(:next_card_upto)
     end
 
     describe "GET /model/new" do

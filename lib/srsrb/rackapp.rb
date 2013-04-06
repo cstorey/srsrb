@@ -14,13 +14,15 @@ module SRSRB
       deck = DeckViewModel.new event_store
       deck.start!
 
-      ReviewsApp.new deck, deck_changes
+      app = ReviewsApp.new deck, deck_changes
+      app = CardEditorApp.new deck, deck_changes, app
+      ModelEditorApp.new deck, deck_changes, app
     end
   end
 
   class ReviewsApp < Sinatra::Base
     def initialize deck_view, decks, child=nil
-      super nil
+      super child
       self.deck_view = deck_view
       self.decks = decks
     end
@@ -71,6 +73,28 @@ module SRSRB
       decks.score_card! id, score
       redirect '/reviews/', 303
     end
+
+    private
+    def current_day
+      session[:current_day] || 0
+    end
+
+
+    attr_accessor :deck_view, :decks
+  end
+
+  class CardEditorApp < Sinatra::Base
+    def initialize deck_view, decks, child=nil
+      super child
+      self.deck_view = deck_view
+      self.decks = decks
+    end
+
+    use Rack::Session::Cookie, :key => 'rack.session',
+                           #:domain => 'foo.com',
+                           :path => '/',
+                           :expire_after => 2592000, # In seconds
+                           :secret => 'change_me'
 
     get '/editor/new' do
       show_card_edit_form_for_default_model
@@ -127,6 +151,23 @@ module SRSRB
     def form_fields_for_model_as_dictionary model
       fields = model.fields.to_enum.flat_map { |f| [f, params["field-#{f}"]] }.into { |kvs| Hash[*kvs] }
     end
+    private
+    attr_accessor :deck_view, :decks
+  end
+
+  class ModelEditorApp < Sinatra::Base
+    def initialize deck_view, decks, child=nil
+      super child
+      self.deck_view = deck_view
+      self.decks = decks
+    end
+
+    use Rack::Session::Cookie, :key => 'rack.session',
+                           #:domain => 'foo.com',
+                           :path => '/',
+                           :expire_after => 2592000, # In seconds
+                           :secret => 'change_me'
+
 
     # Model editing
     get '/model/new' do
@@ -159,12 +200,8 @@ module SRSRB
         fields
       end
     end
+
     private
-
-    def current_day
-      session[:current_day] || 0
-    end
-
     attr_accessor :deck_view, :decks
   end
 
@@ -182,8 +219,10 @@ module SRSRB
       deck = DeckViewModel.new event_store
       deck.start!
 
-      parent_app = ReviewsApp.new deck, deck_changes
-      self.new(parent_app, deck, deck_changes)
+      app = ReviewsApp.new deck, deck_changes
+      app = CardEditorApp.new deck, deck_changes, app
+      app = ModelEditorApp.new deck, deck_changes, app
+      self.new(app, deck, deck_changes)
     end
 
     use Rack::Session::Cookie, :key => 'rack.session',

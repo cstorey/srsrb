@@ -132,22 +132,29 @@ module SRSRB
     end
 
     def show_new_model_form
-      fields = [params[:field_name]].flatten.reject(&:nil?).reject(&:empty?)
-      fields << params[:new_field_name] if params[:action] == 'add-field'
       model_name = params[:model_name]
+
       if params[:action] == 'commit'
         model_id = LexicalUUID.new
 
         decks.name_model! model_id, params[:model_name]
         decks.edit_model_templates! model_id, params[:question], params[:answer]
-        fields.each do |f|
+
+        model_fields_from_form.each do |f|
           decks.add_model_field! model_id, f
         end
       end
 
-      haml :model_editor, locals: {fields: fields, model_name: model_name}
+      haml :model_editor, locals: {fields: model_fields_from_form, model_name: model_name}
     end
 
+    def model_fields_from_form
+      @model_fields_from_form ||= begin
+        fields = [params[:field_name]].flatten.reject(&:nil?).reject(&:empty?)
+        fields << params[:new_field_name] if params[:action] == 'add-field'
+        fields
+      end
+    end
     private
 
     def current_day

@@ -136,11 +136,11 @@ module SRSRB
           end
 
           it "should store the id" do
-              expect(deck.card_models.first.id).to be == id
+              expect(deck.card_models.first).to be == id
           end
 
           it "should add the name" do
-              expect(deck.card_models.first.name).to be == name
+              expect(deck.card_model(id).name).to be == name
           end
         end
 
@@ -154,11 +154,11 @@ module SRSRB
           end
 
           it "should store the id" do
-              expect(deck.card_models.first.id).to be == id
+              expect(deck.card_models.first).to be == id
           end
 
           it "should add the name" do
-              expect(deck.card_models.first.name).to be == name
+              expect(deck.card_model(id).name).to be == name
           end
         end
 
@@ -170,7 +170,7 @@ module SRSRB
               event_store.subscribe_callback.call id, ModelNamed.new(name: id.to_guid)
             end
 
-            expect(deck.card_models.map(&:id).map(&:to_guid).to_a).to be == ids.map(&:to_guid)
+            expect(deck.card_models.map(&:to_guid).to_a).to be == ids.map(&:to_guid)
           end
         end
       end
@@ -186,8 +186,8 @@ module SRSRB
 
         it "should add it to the fields in the model" do
           event_store.subscribe_callback.call id, ModelFieldAdded.new(field: "bob")
-          expect(deck.card_models.first.fields).to have(1).items
-          expect(deck.card_models.first.fields).to include("bob")
+          expect(deck.card_model(id).fields).to have(1).items
+          expect(deck.card_model(id).fields).to include("bob")
         end
       end
     end

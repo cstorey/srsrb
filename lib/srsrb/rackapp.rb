@@ -63,17 +63,18 @@ module SRSRB
     end
 
     get '/editor/new' do
-      model = deck_view.card_models.first
-      redirect "/editor/new/#{model.id.to_guid}", 303
+      model_id = deck_view.card_models.first
+      redirect "/editor/new/#{model_id.to_guid}", 303
     end
+
     get '/editor/new/:model_id' do
       # Hack for the system tests
       last_card_id = session.delete :last_added_card_id
       model_id = LexicalUUID.new(params[:model_id])
-      model = deck_view.card_models.find { |m| m.id == model_id }
+      model = deck_view.card_model(model_id)
       haml :card_editor, locals: {
         last_card_id: last_card_id,
-        card_models: deck_view.card_models.to_enum.flat_map { |m| [m.id.to_guid, m.name] }.into { |kvs| Hash[*kvs] },
+        card_models: deck_view.card_models.to_enum.flat_map { |model_id| [model_id.to_guid, deck_view.card_model(model_id).name] }.into { |kvs| Hash[*kvs] },
         card_fields: model.fields
       }
     end

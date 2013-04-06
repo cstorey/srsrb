@@ -31,7 +31,11 @@ module SRSRB
     end
 
     def card_models
-      _card_model_ids.map { |id| _card_models.fetch(id) }
+      _card_model_ids
+    end
+
+    def card_model id
+      _card_models.fetch(id)
     end
 
     private

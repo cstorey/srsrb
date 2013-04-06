@@ -105,7 +105,10 @@ module SRSRB
       }
 
       before do
-        deck_view.stub(:card_models).and_return(card_models)
+        deck_view.stub(:card_models).and_return(card_models.map(&:id))
+        card_models.each do |model|
+          deck_view.stub(:card_model).with(model.id).and_return(model)
+        end
       end
 
       context "with multiple models" do

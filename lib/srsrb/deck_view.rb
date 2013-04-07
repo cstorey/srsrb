@@ -79,7 +79,7 @@ module SRSRB
     end
 
     def handle_model_named id, event
-      update_model(id) { |model| model ||= CardModel.new(id: id); model.set_name(event.name) }
+      update_model(id) { |model| model ||= CardModelFormatter.new(id: id); model.set_name(event.name) }
     end
 
     def update_card id, &block
@@ -98,7 +98,7 @@ module SRSRB
 
     def handle_model_field_added id, event
       update_model(id) { |old_model|
-        model = old_model || CardModel.new(id: id)
+        model = old_model || CardModelFormatter.new(id: id)
         model.set_fields model.fields.add(event.field)
       }
     end
@@ -124,7 +124,7 @@ module SRSRB
       super || 0
     end
   end
-  class CardModel < Hamsterdam::Struct.define(:id, :name, :fields, :question_template, :answer_template)
+  class CardModelFormatter < Hamsterdam::Struct.define(:id, :name, :fields, :question_template, :answer_template)
     def fields
       super || Hamster.vector
     end

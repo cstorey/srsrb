@@ -3,6 +3,7 @@ require 'srsrb/events'
 
 require 'hamster/hash'
 require 'lexical_uuid'
+require 'fake_event_store'
 
 module SRSRB
   describe DeckViewModel do
@@ -13,21 +14,6 @@ module SRSRB
     let (:card) { Card.new id: card_id, review_count: 0, due_date: 0 }
     let (:tomorrow) { 1 }
     let (:card_reviewed_event) { CardReviewed.new next_due_date: tomorrow }
-
-    class FakeEventStore
-      include RSpec::Matchers
-      def subscribe block
-        expect(block).to respond_to :call
-        self.subscribe_callback = block
-      end
-
-      def record! id, event
-        subscribe_callback.call id, event
-      end
-
-      private
-      attr_accessor :subscribe_callback
-    end
 
     describe "#next_card_upto" do
       before do

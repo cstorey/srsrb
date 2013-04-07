@@ -1,5 +1,6 @@
 require 'srsrb/decks'
 require 'lexical_uuid'
+require 'fake_event_store'
 
 module SRSRB
   describe ReviewScoring do

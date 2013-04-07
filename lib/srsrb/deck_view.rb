@@ -14,7 +14,7 @@ module SRSRB
     end
 
     def start!
-      event_store.subscribe method :handle_event
+      event_store.subscribe self
     end
 
     def next_card_upto time
@@ -39,7 +39,6 @@ module SRSRB
       _card_models.fetch(id)
     end
 
-    private
     def handle_event id, event
       case event
         when CardReviewed then handle_card_reviewed id, event
@@ -51,6 +50,7 @@ module SRSRB
       end
     end
 
+    private
     def handle_card_reviewed id, event
       update_card(id) { |card0|
         card0.set_review_count(card0.review_count.to_i.succ).

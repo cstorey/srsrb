@@ -108,14 +108,12 @@ module SRSRB
     end
 
     def start!
-      event_store.subscribe method(:handle_event)
+      event_store.subscribe self
     end
 
     def fetch id
       models[id]
     end
-
-    private
 
     def handle_event id, event
       return unless event.kind_of? ModelFieldAdded
@@ -123,6 +121,8 @@ module SRSRB
       model = model.set_fields model.fields.add(event.field)
       self.models = models.put(id, model)
     end
+
+    private
     attr_accessor :event_store, :models
   end
   class CardModel < Hamsterdam::Struct.define :fields; end

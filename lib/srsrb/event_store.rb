@@ -11,17 +11,17 @@ module SRSRB
     def record! stream_id, event
       self.events = events.add(Commit.new stream_id: stream_id, data: event)
 
-      subscribers.each do |s|
-        s.call stream_id, event
+      subscribers.each do |listener|
+        listener.handle_event stream_id, event
       end
     end
 
-    def subscribe callback
+    def subscribe listener
       events.each do |commit|
-        callback.call commit.stream_id, commit.data
+        listener.handle_event commit.stream_id, commit.data
       end
 
-      self.subscribers = subscribers.add callback
+      self.subscribers = subscribers.add listener
     end
 
     def count

@@ -21,6 +21,11 @@ module SRSRB
         self.subscribe_callback = block
       end
 
+      def record! id, event
+        subscribe_callback.call id, event
+      end
+
+      private
       attr_accessor :subscribe_callback
     end
 
@@ -43,7 +48,7 @@ module SRSRB
         end
 
         it "returns nil once empty" do
-          event_store.subscribe_callback.call card.id, card_reviewed_event
+          event_store.record! card.id, card_reviewed_event
           expect(deck.next_card_upto(0)).to be_nil
         end
       end
@@ -77,21 +82,18 @@ module SRSRB
         deck.enqueue_card(card)
         deck.start!
       end
-      it "should subscribe to the event_store" do
-        expect(event_store.subscribe_callback).to respond_to :call
-      end
 
       context "when receiving CardReviewed events" do
       it "should update the review count for each card_reviewed" do
         expect do
-          event_store.subscribe_callback.call card.id, card_reviewed_event
+          event_store.record! card.id, card_reviewed_event
         end.to change { deck.card_for(card.id).review_count }.by(1)
       end
 
       it "should update the due-date for the card to that specified in the event" do
         next_due_date = 4
         expect do
-          event_store.subscribe_callback.call card.id, card_reviewed_event.set_next_due_date(next_due_date)
+          event_store.record! card.id, card_reviewed_event.set_next_due_date(next_due_date)
         end.to change { deck.card_for(card.id).due_date }.from(0).to(next_due_date)
       end
       end
@@ -102,14 +104,14 @@ module SRSRB
         let (:card_fields) { { "word" => "fish", "meaning" => "wet thing", "sound" => "ffish" } }
         before do
           card_fields.each do |field, _|
-            event_store.subscribe_callback.call model_id, ModelFieldAdded.new(field: field)
+            event_store.record! model_id, ModelFieldAdded.new(field: field)
           end
 
-          event_store.subscribe_callback.call model_id,
+          event_store.record! model_id,
             ModelTemplatesChanged.new(question: '{{ word }}', answer: '{{ meaning }} {{ sound }}')
 
-          event_store.subscribe_callback.call id, CardModelChanged.new(model_id: model_id)
-          event_store.subscribe_callback.call id, CardEdited.new(card_fields: card_fields)
+          event_store.record! id, CardModelChanged.new(model_id: model_id)
+          event_store.record! id, CardEdited.new(card_fields: card_fields)
         end
 
         it "should add it to the current stack of cards" do
@@ -137,7 +139,7 @@ module SRSRB
         let (:name) { "Jim" }
         context "when we send one event" do
           before do
-            event_store.subscribe_callback.call id, ModelNamed.new(name: name)
+            event_store.record! id, ModelNamed.new(name: name)
           end
           it "should add the a model object to the set of known models" do
             expect(deck.card_models.size).to be == 1
@@ -154,8 +156,8 @@ module SRSRB
 
         context "when we send two events" do
           before do
-            event_store.subscribe_callback.call id, ModelNamed.new(name: "Stuff")
-            event_store.subscribe_callback.call id, ModelNamed.new(name: name)
+            event_store.record! id, ModelNamed.new(name: "Stuff")
+            event_store.record! id, ModelNamed.new(name: name)
           end
           it "should add the a model object to the set of known models" do
             expect(deck.card_models.size).to be == 1
@@ -175,7 +177,7 @@ module SRSRB
             ids = (0...10).map { LexicalUUID.new }
 
             ids.each do |id|
-              event_store.subscribe_callback.call id, ModelNamed.new(name: id.to_guid)
+              event_store.record! id, ModelNamed.new(name: id.to_guid)
             end
 
             expect(deck.card_models.map(&:to_guid).to_a).to be == ids.map(&:to_guid)
@@ -188,12 +190,12 @@ module SRSRB
 
         it "should implicitly create the model" do
           expect do
-            event_store.subscribe_callback.call id, ModelFieldAdded.new(field: "bob")
+            event_store.record! id, ModelFieldAdded.new(field: "bob")
           end.to change { deck.card_models.size }.by 1
         end
 
         it "should add it to the fields in the model" do
-          event_store.subscribe_callback.call id, ModelFieldAdded.new(field: "bob")
+          event_store.record! id, ModelFieldAdded.new(field: "bob")
           expect(deck.card_model(id).fields).to have(1).items
           expect(deck.card_model(id).fields).to include("bob")
         end

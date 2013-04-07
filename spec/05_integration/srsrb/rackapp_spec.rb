@@ -23,7 +23,6 @@ module SRSRB
       described_class.set :raise_errors, true
       described_class.set :dump_errors, false
       described_class.set :show_exceptions, false
-      deck_view.stub(:next_card_upto)
     end
 
     describe "GET /reviews" do
@@ -108,7 +107,6 @@ module SRSRB
       described_class.set :raise_errors, true
       described_class.set :dump_errors, false
       described_class.set :show_exceptions, false
-      deck_view.stub(:next_card_upto)
     end
 
     describe "GET /editor/new" do
@@ -242,7 +240,6 @@ module SRSRB
       described_class.set :raise_errors, true
       described_class.set :dump_errors, false
       described_class.set :show_exceptions, false
-      deck_view.stub(:next_card_upto)
     end
 
     describe "GET /model/new" do

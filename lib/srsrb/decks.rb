@@ -54,11 +54,9 @@ module SRSRB
     end
   end
 
-  class Decks
+  class CardEditing
     def initialize event_store, models
       self.event_store = event_store
-      self.next_due_dates = Hamster.hash
-      self.intervals = Hamster.hash
       self.model_ids_by_card = Hamster.hash
       self.models = models
     end
@@ -76,6 +74,20 @@ module SRSRB
       event_store.record! card_id, CardModelChanged.new(model_id: model_id)
       self.model_ids_by_card = model_ids_by_card.put(card_id, model_id)
     end
+
+    private
+    attr_accessor :event_store, :model_ids_by_card, :models
+  end
+
+  class Decks
+    def initialize event_store, models
+      self.event_store = event_store
+      self.next_due_dates = Hamster.hash
+      self.intervals = Hamster.hash
+      self.model_ids_by_card = Hamster.hash
+      self.models = models
+    end
+
 
     # Model operations
     def name_model! id, name

@@ -64,11 +64,11 @@ module SRSRB
     end
   end
 
-  describe Decks do
+  describe CardEditing do
     let (:event_store) { mock :event_store }
     let (:models) { mock :models }
     let (:a_model) { mock :model, fields: Hamster.set(*card_fields.keys) }
-    let (:decks) { Decks.new event_store, models }
+    let (:decks) { CardEditing.new event_store, models }
     let (:card_id) { LexicalUUID.new }
 
 
@@ -104,6 +104,15 @@ module SRSRB
         end.to raise_error(FieldMissingException)
       end
     end
+  end
+
+  describe Decks do
+    let (:event_store) { mock :event_store }
+    let (:models) { mock :models }
+    let (:a_model) { mock :model, fields: Hamster.set(*card_fields.keys) }
+    let (:decks) { Decks.new event_store, models }
+    let (:card_id) { LexicalUUID.new }
+
 
     let (:model_id) { LexicalUUID.new }
     let (:model_name) { "my lovely words" }

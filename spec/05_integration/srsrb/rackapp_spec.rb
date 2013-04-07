@@ -334,9 +334,12 @@ module SRSRB
 
   describe SystemTestHackApi do
     let (:deck_view) { mock(:deck_view_model) }
-    let (:decks) { mock(:decks) }
-    let (:parent_app) { ReviewsApp.new deck_view, decks }
-    let (:plain_app) { SystemTestHackApi.new(parent_app, deck_view, decks) }
+    let (:card_editing) { mock(:card_editing) }
+    let (:model_editing) { mock(:model_editing) }
+    let (:card_reviews) { mock(:card_reviews) }
+
+    let (:parent_app) { ReviewsApp.new deck_view, card_reviews }
+    let (:plain_app) { SystemTestHackApi.new(parent_app, deck_view, card_editing, model_editing) }
     let (:app) { plain_app } # Rack::CommonLogger.new plain_app, $stderr }
     let (:browser) { ReviewBrowser.new app }
 
@@ -389,12 +392,13 @@ module SRSRB
       } }
 
       before do
-        decks.as_null_object
+        card_editing.as_null_object
+        model_editing.as_null_object
       end
 
       it "should create model fields" do
         model_fields.each do |f|
-          decks.should_receive(:add_model_field!).with(model_id, f)
+          model_editing.should_receive(:add_model_field!).with(model_id, f)
         end
 
         rtsess.put "/editor/raw", JSON.unparse(model: model_json, cards: [])
@@ -402,7 +406,7 @@ module SRSRB
       end
 
       it "should create model fields" do
-        decks.should_receive(:edit_model_templates!).with(model_id, q_tmpl, a_tmpl)
+        model_editing.should_receive(:edit_model_templates!).with(model_id, q_tmpl, a_tmpl)
 
         rtsess.put "/editor/raw", JSON.unparse(model: model_json, cards: [])
         expect(rtsess.last_response).to be_ok
@@ -411,8 +415,8 @@ module SRSRB
 
       it "should create one card for each card item" do
         card_data.each do |d|
-          decks.should_receive(:set_model_for_card!).with(d.fetch(:id), model_id)
-          decks.should_receive(:add_or_edit_card!).with(d.fetch(:id), d.fetch(:data))
+          card_editing.should_receive(:set_model_for_card!).with(d.fetch(:id), model_id)
+          card_editing.should_receive(:add_or_edit_card!).with(d.fetch(:id), d.fetch(:data))
         end
 
         card_json = card_data.map { |r|

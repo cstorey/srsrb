@@ -190,11 +190,12 @@ module SRSRB
   end
 
   class SystemTestHackApi < Sinatra::Base
-    def initialize child, deck_view, decks
+    def initialize child, deck_view, card_editing, model_editing
       @child = child
       super child
       self.deck_view = deck_view
-      self.decks = decks
+      self.card_editing = card_editing
+      self.model_editing = model_editing
     end
 
     use Rack::Session::Cookie, :key => 'rack.session',
@@ -235,10 +236,10 @@ module SRSRB
       model = data.fetch('model')
       model_id = LexicalUUID.new(model.fetch('id'))
       model.fetch('fields').each do |f|
-        decks.add_model_field! model_id, f
+        model_editing.add_model_field! model_id, f
       end
 
-      decks.edit_model_templates!(model_id, model.fetch('question_template'), model.fetch('answer_template'))
+      model_editing.edit_model_templates!(model_id, model.fetch('question_template'), model.fetch('answer_template'))
 
 
       data.fetch("cards").each do |item|
@@ -246,8 +247,8 @@ module SRSRB
         guid = item.fetch("id")
         id = LexicalUUID.new(guid)
         fields = item.fetch("data")
-        decks.set_model_for_card! id, model_id
-        decks.add_or_edit_card! id, fields
+        card_editing.set_model_for_card! id, model_id
+        card_editing.add_or_edit_card! id, fields
       end
 
       'OK'
@@ -258,6 +259,6 @@ module SRSRB
       session[:current_day] = day
     end
 
-    attr_accessor :deck_view, :decks
+    attr_accessor :deck_view, :card_editing, :model_editing
   end
 end

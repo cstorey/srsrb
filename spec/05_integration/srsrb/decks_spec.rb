@@ -106,11 +106,11 @@ module SRSRB
     end
   end
 
-  describe Decks do
+  describe ModelEditing do
     let (:event_store) { mock :event_store }
     let (:models) { mock :models }
     let (:a_model) { mock :model, fields: Hamster.set(*card_fields.keys) }
-    let (:decks) { Decks.new event_store, models }
+    let (:decks) { ModelEditing.new event_store, models }
     let (:card_id) { LexicalUUID.new }
 
 

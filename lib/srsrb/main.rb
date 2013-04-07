@@ -27,7 +27,7 @@ module SRSRB
 
     lazy(:event_store) { EventStore.new }
     lazy(:models) { Models.new event_store }
-    lazy(:deck_changes) { Decks.new event_store, models }
+    lazy(:model_editing) { ModelEditing.new event_store, models }
     lazy(:deck_reviews) { ReviewScoring.new event_store }
     lazy(:card_editing) { CardEditing.new event_store, models }
     lazy(:deck) { DeckViewModel.new event_store }
@@ -35,8 +35,8 @@ module SRSRB
     # We really want layered mixins for this.
     lazy(:app0) { ReviewsApp.new deck, deck_reviews }
     lazy(:app1) { CardEditorApp.new deck, card_editing, app0 }
-    lazy(:app2) { ModelEditorApp.new deck, deck_changes, app1 }
-    lazy(:app3) { SystemTestHackApi.new(app2, deck, card_editing, deck_changes) }
+    lazy(:app2) { ModelEditorApp.new deck, model_editing, app1 }
+    lazy(:app3) { SystemTestHackApi.new(app2, deck, card_editing, model_editing) }
 
     def assemble
       deck.start!

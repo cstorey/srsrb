@@ -79,7 +79,7 @@ module SRSRB
     attr_accessor :event_store, :model_ids_by_card, :models
   end
 
-  class Decks
+  class ModelEditing
     def initialize event_store, models
       self.event_store = event_store
       self.next_due_dates = Hamster.hash

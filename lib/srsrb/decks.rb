@@ -80,12 +80,8 @@ module SRSRB
   end
 
   class ModelEditing
-    def initialize event_store, models
+    def initialize event_store
       self.event_store = event_store
-      self.next_due_dates = Hamster.hash
-      self.intervals = Hamster.hash
-      self.model_ids_by_card = Hamster.hash
-      self.models = models
     end
 
 
@@ -100,15 +96,9 @@ module SRSRB
 
     def add_model_field! id, name
       event_store.record! id, ModelFieldAdded.new(field: name)
-      old_model_fields = models.fetch(id) { Hamster.set }
     end
 
-    private
-    def fields_for_model model_id
-      fields_by_model.fetch(model_id) { fail "Missing fields for model #{model_id.to_guid}" }
-    end
-
-    attr_accessor :event_store, :next_due_dates, :intervals, :model_ids_by_card, :models
+    attr_accessor :event_store
   end
 
   class Models

@@ -108,9 +108,8 @@ module SRSRB
 
   describe ModelEditing do
     let (:event_store) { mock :event_store }
-    let (:models) { mock :models }
     let (:a_model) { mock :model, fields: Hamster.set(*card_fields.keys) }
-    let (:decks) { ModelEditing.new event_store, models }
+    let (:decks) { ModelEditing.new event_store }
     let (:card_id) { LexicalUUID.new }
 
 
@@ -142,7 +141,6 @@ module SRSRB
       let (:name) { 'stuff' }
 
       before do
-        models.stub(:fetch).with(model_id).and_return(a_model)
         a_model.stub(:add_field).with(name).and_return(:modified_model)
       end
 

@@ -27,7 +27,7 @@ module SRSRB
 
     lazy(:event_store) { EventStore.new }
     lazy(:models) { Models.new event_store }
-    lazy(:model_editing) { ModelEditing.new event_store, models }
+    lazy(:model_editing) { ModelEditing.new event_store }
     lazy(:deck_reviews) { ReviewScoring.new event_store }
     lazy(:card_editing) { CardEditing.new event_store, models }
     lazy(:deck) { DeckViewModel.new event_store }

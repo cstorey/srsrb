@@ -2,9 +2,9 @@ require 'srsrb/decks'
 require 'lexical_uuid'
 
 module SRSRB
-  describe Decks do
+  describe ReviewScoring do
     let (:event_store) { mock :event_store }
-    let (:decks) { Decks.new event_store }
+    let (:decks) { ReviewScoring.new event_store }
     let (:card_id) { LexicalUUID.new }
 
     describe "#score_card!" do
@@ -62,6 +62,13 @@ module SRSRB
         expect(next_due_dates_of [:good, :good, :fail, :poor]).to be == [1, 3, 3, 4]
       end
     end
+  end
+
+  describe Decks do
+    let (:event_store) { mock :event_store }
+    let (:decks) { Decks.new event_store }
+    let (:card_id) { LexicalUUID.new }
+
 
     describe "#set_model_for_card!" do
       let (:card_id) { LexicalUUID.new }

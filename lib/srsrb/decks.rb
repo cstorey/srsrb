@@ -1,15 +1,24 @@
 require 'srsrb/events'
 require 'hamster/hash'
 
+# TODO: Split according to usage:
+#
+# CardEditorApp	decks.add_or_edit_card
+# CardEditorApp	decks.set_model_for_card
+#
+# ModelEditorApp	decks.add_model_field
+# ModelEditorApp	decks.edit_model_templates
+# ModelEditorApp	decks.name_model
+#
+# ReviewsApp	decks.score_card
+
 module SRSRB
   class FieldMissingException < RuntimeError; end
-  class Decks
+  class ReviewScoring
     def initialize event_store
       self.event_store = event_store
       self.next_due_dates = Hamster.hash
       self.intervals = Hamster.hash
-      self.model_ids_by_card = Hamster.hash
-      self.fields_by_model = Hamster.hash
     end
 
     def score_card! card_id, score
@@ -31,6 +40,27 @@ module SRSRB
       self.intervals = intervals.put(card_id, interval)
 
       event_store.record! card_id, CardReviewed.new(score: score, next_due_date: next_due_date)
+    end
+
+    private
+    attr_accessor :event_store, :next_due_dates, :intervals
+
+    def good? score
+      score == :good
+    end
+
+    def poor? score
+      score == :poor
+    end
+  end
+
+  class Decks
+    def initialize event_store
+      self.event_store = event_store
+      self.next_due_dates = Hamster.hash
+      self.intervals = Hamster.hash
+      self.model_ids_by_card = Hamster.hash
+      self.fields_by_model = Hamster.hash
     end
 
     def add_or_edit_card! id, data
@@ -64,13 +94,6 @@ module SRSRB
 
     private
 
-    def good? score
-      score == :good
-    end
-
-    def poor? score
-      score == :poor
-    end
     attr_accessor :event_store, :next_due_dates, :intervals, :model_ids_by_card, :fields_by_model
   end
 end

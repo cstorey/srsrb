@@ -161,19 +161,23 @@ module SRSRB
     def show_new_model_form
       model_name = params[:model_name]
 
-      if params[:action] == 'commit'
-        model_id = LexicalUUID.new
-
-        decks.name_model! model_id, params[:model_name]
-        decks.edit_model_templates! model_id, params[:question], params[:answer]
-
-        model_fields_from_form.each do |f|
-          decks.add_model_field! model_id, f
-        end
-      end
-
+      maybe_commit_model!
       haml :model_editor, locals: {fields: model_fields_from_form, model_name: model_name}
     end
+
+    def maybe_commit_model!
+      return if params[:action] != 'commit'
+
+      model_id = LexicalUUID.new
+
+      decks.name_model! model_id, params[:model_name]
+      decks.edit_model_templates! model_id, params[:question], params[:answer]
+
+      model_fields_from_form.each do |f|
+        decks.add_model_field! model_id, f
+      end
+    end
+
 
     def model_fields_from_form
       @model_fields_from_form ||= begin

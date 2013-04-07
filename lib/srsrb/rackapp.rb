@@ -233,25 +233,35 @@ module SRSRB
 
     def inject_model_with_cards!
       data = JSON.parse(request.body.read)
+
+      model_id = inject_model! data
+      inject_cards! model_id, data
+      'OK'
+    end
+
+    def inject_model! data
       model = data.fetch('model')
       model_id = LexicalUUID.new(model.fetch('id'))
+
       model.fetch('fields').each do |f|
         model_editing.add_model_field! model_id, f
       end
 
       model_editing.edit_model_templates!(model_id, model.fetch('question_template'), model.fetch('answer_template'))
+      model_id
+    end
 
-
+    def inject_cards! model_id, data
       data.fetch("cards").each do |item|
-        fail "Found #{item.inspect}, expected dictionary" unless item.kind_of? Hash
-        guid = item.fetch("id")
-        id = LexicalUUID.new(guid)
-        fields = item.fetch("data")
-        card_editing.set_model_for_card! id, model_id
-        card_editing.add_or_edit_card! id, fields
+        inject_a_card! model_id, item
       end
+    end
 
-      'OK'
+    def inject_a_card! model_id, item
+      id = LexicalUUID.new(item.fetch("id"))
+      fields = item.fetch("data")
+      card_editing.set_model_for_card! id, model_id
+      card_editing.add_or_edit_card! id, fields
     end
 
     private

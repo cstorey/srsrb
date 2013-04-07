@@ -26,7 +26,8 @@ module SRSRB
     extend Lazy
 
     lazy(:event_store) { EventStore.new }
-    lazy(:deck_changes) { Decks.new event_store }
+    lazy(:models) { Models.new event_store }
+    lazy(:deck_changes) { Decks.new event_store, models }
     lazy(:deck_reviews) { ReviewScoring.new event_store }
     lazy(:deck) { DeckViewModel.new event_store }
 
@@ -38,6 +39,7 @@ module SRSRB
 
     def assemble
       deck.start!
+      models.start!
       app3
     end
   end

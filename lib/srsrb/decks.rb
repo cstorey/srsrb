@@ -55,17 +55,17 @@ module SRSRB
   end
 
   class Decks
-    def initialize event_store
+    def initialize event_store, models
       self.event_store = event_store
       self.next_due_dates = Hamster.hash
       self.intervals = Hamster.hash
       self.model_ids_by_card = Hamster.hash
-      self.fields_by_model = Hamster.hash
+      self.models = models
     end
 
     def add_or_edit_card! id, data
       model_id = model_ids_by_card.fetch(id) { fail "Missing model for card #{id.to_guid} " }
-      expected_fields = fields_by_model.fetch(model_id) { fail "Missing fields for model #{model_id.to_guid}" }
+      expected_fields = models.fetch(model_id).fields
       missing_fields = (expected_fields - data.keys)
       raise FieldMissingException if not missing_fields.empty?
 
@@ -88,12 +88,40 @@ module SRSRB
 
     def add_model_field! id, name
       event_store.record! id, ModelFieldAdded.new(field: name)
-      old_model_fields = fields_by_model.fetch(id) { Hamster.set }
-      self.fields_by_model = fields_by_model.put(id, old_model_fields.add(name))
+      old_model_fields = models.fetch(id) { Hamster.set }
+    end
+
+    private
+    def fields_for_model model_id
+      fields_by_model.fetch(model_id) { fail "Missing fields for model #{model_id.to_guid}" }
+    end
+
+    attr_accessor :event_store, :next_due_dates, :intervals, :model_ids_by_card, :models
+  end
+
+  class Models
+    def initialize event_store
+      self.event_store = event_store
+      self.models = Hamster.hash
+    end
+
+    def start!
+      event_store.subscribe method(:handle_event)
+    end
+
+    def fetch id
+      models[id]
     end
 
     private
 
-    attr_accessor :event_store, :next_due_dates, :intervals, :model_ids_by_card, :fields_by_model
+    def handle_event id, event
+      return unless event.kind_of? ModelFieldAdded
+      model = models[id] || CardModel.new(fields: Hamster.set)
+      model = model.set_fields model.fields.add(event.field)
+      self.models = models.put(id, model)
+    end
+    attr_accessor :event_store, :models
   end
+  class CardModel < Hamsterdam::Struct.define :fields; end
 end

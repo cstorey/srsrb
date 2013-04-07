@@ -66,7 +66,9 @@ module SRSRB
 
   describe Decks do
     let (:event_store) { mock :event_store }
-    let (:decks) { Decks.new event_store }
+    let (:models) { mock :models }
+    let (:a_model) { mock :model, fields: Hamster.set(*card_fields.keys) }
+    let (:decks) { Decks.new event_store, models }
     let (:card_id) { LexicalUUID.new }
 
 
@@ -86,12 +88,10 @@ module SRSRB
 
       before do
         event_store.as_null_object
-
-        card_fields.each do |f, _|
-          decks.add_model_field! model_id, f
-        end
+        models.stub(:fetch).with(model_id).and_return(a_model)
         decks.set_model_for_card! card_id, model_id
       end
+
       it "should record the score, and card in the event store" do
         event_store.should_receive(:record!).with(card_id, CardEdited.new(card_fields: card_fields))
         decks.add_or_edit_card! card_id, card_fields
@@ -129,12 +129,56 @@ module SRSRB
     end
 
     describe "#add_model_field!" do
-      it "should emit an even stating the templates have changed" do
-        name = 'stuff'
-        model_id
+      let (:card_fields) { { "stuff" => "things", "gubbins" => "cheese" } }
+      let (:name) { 'stuff' }
+
+      before do
+        models.stub(:fetch).with(model_id).and_return(a_model)
+        a_model.stub(:add_field).with(name).and_return(:modified_model)
+      end
+
+      it "should emit an event stating the templates have changed" do
         event_store.should_receive(:record!).
           with model_id, ModelFieldAdded.new(field: name)
         decks.add_model_field! model_id, name
+      end
+
+      it "should emit an event stating the templates have changed" do
+        event_store.should_receive(:record!).
+          with model_id, ModelFieldAdded.new(field: name)
+        decks.add_model_field! model_id, name
+      end
+    end
+  end
+
+  describe Models do
+    describe "#fetch" do
+      let (:event_store) { FakeEventStore.new }
+      let (:models) { Models.new event_store }
+      let (:model_id) { LexicalUUID.new }
+
+      before :each do
+        models.start!
+        events.each do |evt|
+          event_store.record! model_id, evt
+        end
+      end
+      context "with no events" do
+        let (:events) { [] }
+        it "should return no models" do
+          expect(models.fetch(model_id)).to be == nil
+        end
+      end
+
+      context "with a single add field event" do
+        let (:events) { [ModelFieldAdded.new(field: 'foo')] }
+        it "should return a single model" do
+          expect(models.fetch(model_id).fields).to have(1).items
+        end
+
+        it "should record the field name" do
+          expect(models.fetch(model_id).fields).to include('foo')
+        end
       end
     end
   end

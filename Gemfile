@@ -20,6 +20,8 @@ end
 group :development do
     gem 'guard'
     gem 'guard-rspec'
+    gem 'guard-bundler'
     gem 'rb-fsevent', '~> 0.9'
     gem 'launchy'
+    gem 'mutant'
 end

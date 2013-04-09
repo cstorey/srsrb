@@ -222,6 +222,19 @@ module SRSRB
       it "should indicate a problem when the question other is missing"
       end
     end
+
+    describe 'GET /editor/' do
+      let (:a_card) { OpenStruct.new(
+        id: LexicalUUID.new, question: 'a question 1', answer: 'the answer')
+      }
+      it "should list all cards in the deck" do
+        deck_view.stub(:all_cards).and_return([a_card].to_enum)
+        page = browser.list_cards
+        expect(page).to have(1).cards
+        the_card = page.cards.first
+        expect(the_card)
+      end
+    end
   end
 
   describe ModelEditorApp do

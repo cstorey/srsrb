@@ -1,0 +1,10 @@
+%div#card-editor-list-page.page
+
+  %table
+    %tbody
+      - deck_view.all_cards.each do |card|
+        %tr.card
+          %td
+            %a{href: card.id.to_guid}
+              &= card.question
+

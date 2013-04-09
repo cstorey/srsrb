@@ -63,13 +63,21 @@ module SRSRB
       end
     end
 
+    describe "#all_cards" do
+      it "returns an empty collection by default" do
+        expect(deck.all_cards).to be_empty
+      end
+    end
+
     describe "#start!" do
       before do
-        deck.enqueue_card(card)
         deck.start!
       end
 
       context "when receiving CardReviewed events" do
+        before do
+          deck.enqueue_card(card)
+        end
       it "should update the review count for each card_reviewed" do
         expect do
           event_store.record! card.id, card_reviewed_event
@@ -117,6 +125,13 @@ module SRSRB
         end
         it "should set the card id" do
           expect(deck.card_for(id).id).to be == id
+        end
+
+        it "should be included in all_cards" do
+          pp card_ids: deck.all_cards.map(&:id).map(&:to_guid), model: model_id.to_guid, card: id.to_guid
+          known_cards = deck.all_cards.map(&:id).to_set
+          expect(known_cards).to have(1).items
+          expect(known_cards).to include(id)
         end
       end
 

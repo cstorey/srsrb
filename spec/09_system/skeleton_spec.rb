@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'capybara'
 require 'srsrb/main'
 require 'rack/test'
@@ -129,7 +130,21 @@ describe :SkeletonBehavior do
         answers: {card_id => "Goodbye"})
     end
 
-    it "should be possible to edit existing cards"
+    it "should be possible to edit existing cards" do
+      pending "incomplete" do
+      with_default_cards 0...1
+      cards = browser.list_cards
+      card = cards.nth 1
+      card[:question] = 'こんにちは'
+      card[:question] = 'じゃ、またね'
+      card_id = card.save!
+
+      should_see_reviews(
+        [{day: 0, should_see: {card_id => [:good]}}],
+        questions: {card_id =>'こんにちは'},
+        answers: {card_id => 'じゃ、またね'})
+      end
+    end
     it "should be possible to trash existing cards"
   end
 

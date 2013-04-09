@@ -135,6 +135,15 @@ module SRSRB
     def form_fields_for_model_as_dictionary model
       fields = model.fields.to_enum.flat_map { |f| [f, params["field-#{f}"]] }.into { |kvs| Hash[*kvs] }
     end
+
+    get '/editor/' do
+      show_card_list
+    end
+
+    def show_card_list
+      haml :card_editor_list, locals: { deck_view: deck_view }
+    end
+
     private
     attr_accessor :deck_view, :decks
   end

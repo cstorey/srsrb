@@ -32,6 +32,8 @@ module SRSRB
         CardEditorPage.new(browser, self)
       when 'model-editor-page'
         ModelEditorPage.new(browser, self)
+      when 'card-editor-list-page'
+        CardEditorListPage.new(browser, self)
       else
         fail "No page id recognised: #{id}"
       end
@@ -43,6 +45,11 @@ module SRSRB
 
     def get_add_card_page
       browser.visit '/editor/new'
+      parse
+    end
+
+    def list_cards
+      browser.visit '/editor/'
       parse
     end
 
@@ -163,6 +170,20 @@ module SRSRB
 
     def create!
       browser.click_button 'save'
+    end
+  end
+
+  class CardEditorListPage < Page
+    def cards
+      browser.all('.card')
+    end
+
+    def nth n
+      puts browser.html
+      rows = browser.all("tr.card:nth-child(#{n})")
+      pp rows: rows.first
+      rows.first.find('a').click
+      parent.parse
     end
   end
 end

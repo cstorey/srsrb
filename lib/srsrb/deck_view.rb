@@ -39,6 +39,10 @@ module SRSRB
       _card_models.fetch(id)
     end
 
+    def all_cards
+      cards.values
+    end
+
     def handle_event id, event
       case event
         when CardReviewed then handle_card_reviewed id, event

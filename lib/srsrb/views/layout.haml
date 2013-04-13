@@ -35,6 +35,11 @@
               %li
                 %a{:href => "/model/new"} New Model
 
+    -if defined?(flash) && flash
+      %div#notices
+        -flash.keys.each do |kind|
+          %div{class:["alert-box", kind].join(" ")}&= flash[kind]
+
     %div#srsrb-main
       = yield
 

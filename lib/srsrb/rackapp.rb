@@ -1,4 +1,5 @@
 require 'sinatra/base'
+require 'rack-flash'
 require 'lexical_uuid'
 require 'srsrb/object_patch'
 require 'haml'
@@ -67,6 +68,7 @@ module SRSRB
       self.decks = decks
     end
 
+    use Rack::Flash
 
     get '/editor/new' do
       show_card_edit_form_for_default_model
@@ -121,6 +123,7 @@ module SRSRB
       decks.add_or_edit_card! id, form_fields_for_model_as_dictionary(model)
 
       session[:last_added_card_id] = id
+      flash[:success] = "Your card has now been saved"
       redirect '/editor/new', 303
     end
 
@@ -166,6 +169,7 @@ module SRSRB
       pp card_fields: card_fields
 
       decks.add_or_edit_card! card_id, card_fields
+      flash[:success] = "Your card has now been saved"
       redirect "/editor/#{card_id.to_guid}", 303
     end
 
@@ -180,6 +184,7 @@ module SRSRB
       self.decks = decks
     end
 
+    use Rack::Flash
 
     # Model editing
     get '/model/new' do
@@ -204,6 +209,7 @@ module SRSRB
       model_fields_from_form.each do |f|
         decks.add_model_field! model_id, f
       end
+      flash[:success] = "Your model has now been saved"
     end
 
 

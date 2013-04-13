@@ -78,6 +78,10 @@ module SRSRB
       false
     end
 
+    def successes
+      browser.all('.alert-box.success').map(&:text)
+    end
+
     attr_accessor :browser, :parent
   end
 
@@ -188,6 +192,7 @@ module SRSRB
 
     def create!
       browser.click_button 'save'
+      parent.parse
     end
   end
 

@@ -8,6 +8,8 @@ gem 'haml'
 gem 'lexical_uuid'
 gem 'atomic'
 
+gem 'rack-flash3'
+
 group :production do
     gem 'puma'
 end

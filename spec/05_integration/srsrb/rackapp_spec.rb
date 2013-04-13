@@ -219,6 +219,16 @@ module SRSRB
         expect(page.last_added_card_id).to be_kind_of LexicalUUID
       end
 
+      it "should show a helpful* message when it has been saved" do
+        decks.as_null_object
+        page = browser.get_add_card_page
+        page[:question] = "a question"
+        page[:answer] = "an answer"
+        page = page.add_card!
+
+        expect(page.successes).to include "Your card has now been saved"
+      end
+
       it "should indicate a problem when the question other is missing"
       end
 
@@ -251,6 +261,7 @@ module SRSRB
 
       before do
         deck_view.stub(:editable_card_for).with(card_data.id).and_return(card_data)
+        decks.stub(:add_or_edit_card!)
       end
 
       it "should yield a card edit form" do
@@ -270,6 +281,13 @@ module SRSRB
         decks.should_receive(:add_or_edit_card!).with card_data.id, card_fields
 
         page.save!
+      end
+
+      it "should show a helpful* message when it has been saved" do
+        page = browser.get_card_edit_page card_data.id.to_guid
+        page =  page.save!
+
+        expect(page.successes).to include "Your card has now been saved"
       end
     end
   end
@@ -378,6 +396,12 @@ module SRSRB
           expect(uuids).to have(1).items
 
         end
+
+        it "should show a helpful* message when it has been saved" do
+          page = model.create!
+          expect(page.successes).to include "Your model has now been saved"
+        end
+
       end
     end
   end

@@ -17,18 +17,18 @@ module SRSRB
   class ReviewScoring
     def initialize event_store
       self.event_store = event_store
-      self.next_due_dates = Hamster.hash
-      self.intervals = Hamster.hash
+      self.next_due_dates = Atomic.new Hamster.hash
+      self.intervals = Atomic.new Hamster.hash
     end
 
     def score_card! card_id, score
-      prev_due_date = next_due_dates.fetch(card_id, 0)
+      prev_due_date = next_due_dates.get.fetch(card_id, 0)
 
       if good? score
-        prev_interval = intervals.fetch(card_id, 0)
+        prev_interval = intervals.get.fetch(card_id, 0)
         interval = [prev_interval * 2, 1].max
       elsif poor? score
-        prev_interval = intervals.fetch(card_id, 0)
+        prev_interval = intervals.get.fetch(card_id, 0)
         interval = [prev_interval, 1].max
       else
         interval = 0
@@ -36,8 +36,8 @@ module SRSRB
 
       next_due_date = prev_due_date + interval
 
-      self.next_due_dates = next_due_dates.put(card_id, next_due_date)
-      self.intervals = intervals.put(card_id, interval)
+      next_due_dates.update { |dates| dates.put(card_id, next_due_date) }
+      intervals.update { |intervals| intervals.put(card_id, interval) }
 
       event_store.record! card_id, CardReviewed.new(score: score, next_due_date: next_due_date)
     end

@@ -1,8 +1,10 @@
 require 'srsrb/deck_view'
 require 'srsrb/decks'
-require 'srsrb/event_store'
+require 'srsrb/leveldb_event_store'
 require 'srsrb/object_patch'
 require 'srsrb/rackapp'
+
+require 'lexical_uuid'
 
 module SRSRB
   class Main
@@ -10,8 +12,12 @@ module SRSRB
       self.new.assemble
     end
 
+    def storedir
+      '/tmp/srsrb.events.%d.%s' % [Process.uid, LexicalUUID.new.to_guid]
+    end
     def event_store
-      @event_store ||= EventStore.new
+      @event_store ||= LevelDbEventStore.new storedir
+      #@event_store ||= EventStore.new
     end
     def models
       @models ||= Models.new event_store

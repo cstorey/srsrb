@@ -1,4 +1,4 @@
-require 'srsrb/rackapp'
+require 'srsrb/main'
 
-app = SRSRB::RackApp.assemble
+app = SRSRB::Main.assemble
 run app

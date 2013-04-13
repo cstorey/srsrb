@@ -104,7 +104,7 @@ module SRSRB
   class Models
     def initialize event_store
       self.event_store = event_store
-      self.models = Hamster.hash
+      self.models = Atomic.new Hamster.hash
     end
 
     def start!
@@ -112,14 +112,16 @@ module SRSRB
     end
 
     def fetch id
-      models[id]
+      models.get[id]
     end
 
     def handle_event id, event
       return unless event.kind_of? ModelFieldAdded
-      model = models[id] || CardModel.new(fields: Hamster.set)
-      model = model.set_fields model.fields.add(event.field)
-      self.models = models.put(id, model)
+      models.update do |models|
+        models.fetch(id) { CardModel.new(fields: Hamster.set) }.
+        into { |model| model.set_fields model.fields.add(event.field) }.
+        into { |model| models.put(id, model) }
+      end
     end
 
     private

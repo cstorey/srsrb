@@ -46,7 +46,6 @@ module SRSRB
     end
 
     def editable_card_for id
-        pp get: id, editable_cards: _editable_cards.get
       _editable_cards.get[id]
     end
 
@@ -78,7 +77,6 @@ module SRSRB
 
       update_card(id) { |card| card.set_question(question).set_answer(answer) }
       _editable_cards.update { |oldver| oldver.put(id, EditableCard.new(id: id, fields: event.card_fields)) }
-      pp editable_cards_update: _editable_cards.get
     end
 
     def handle_card_model_changed id, event

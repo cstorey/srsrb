@@ -159,14 +159,10 @@ module SRSRB
 
     def save_card!
       card_id = LexicalUUID.new(params[:card_id])
-      pp req: request.env
-      pp params: params
       card_fields = params.flat_map { |k, v|
         m = /^field-(.*)/.match(k)
-        pp k: k, v:v, m:m
         m ? [m[1], v] : []
       }.into { |kvs| Hash[*kvs] }
-      pp card_fields: card_fields
 
       decks.add_or_edit_card! card_id, card_fields
       flash[:success] = "Your card has now been saved"

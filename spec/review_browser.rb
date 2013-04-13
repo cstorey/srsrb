@@ -160,7 +160,6 @@ module SRSRB
         map { |f| [f, browser.find("#field-#{f}").value] }.
         into { |kvs| Hash[kvs] }
     end
-
   end
 
   class ModelEditorPage < Page
@@ -202,9 +201,7 @@ module SRSRB
     end
 
     def nth n
-      puts browser.html
       rows = browser.all("tr.card:nth-child(#{n})")
-      pp rows: rows.first
       rows.first.find('td:nth-child(1) a').click
       parent.parse
     end

@@ -3,6 +3,46 @@
     %meta{:content => "width=device-width", :name => "viewport"}/
     %link{:href => "/css/normalize.css", :rel => "stylesheet"}/
     %link{:href => "/css/foundation.css", :rel => "stylesheet"}/
+  %body
+    %nav.top-bar
+      %ul.title-area
+        / Title Area
+        %li.name
+          %h1
+            %a{:href => "#"} Top Bar Title
+        / Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone
+        %li.toggle-topbar.menu-icon
+          %a{:href => "#"}
+            %span Menu
+      %section.top-bar-section
+        / Left Nav Section
+        %ul.left
+          %li.divider
+          %li.active
+            %a{:href => "/reviews/"} Card Reviews
+          %li.divider
+          %li.has-dropdown
+            %a{:href => "/editor/"} Card Editing
+            %ul.dropdown
+              %li
+                %a{:href => "/editor/"} List existing
+                %a{:href => "/editor/new"} New card
+
+          %li.divider
+          %li.has-dropdown
+            %a{:href => "/model/new"} Models
+            %ul.dropdown
+              %li
+                %a{:href => "/model/new"} New Model
+
+    %div#srsrb-main
+      = yield
+
     %script{:src => "/js/vendor/custom.modernizr.js"}
-  %body#srsrb-main
-    = yield
+    :javascript
+      document.write('<script src=/js/vendor/'
+        + ('__proto__' in {} ? 'zepto' : 'jquery')
+        + '.js><\/script>');
+    %script{:src => "/js/foundation.min.js"}
+    :javascript
+      $(document).foundation();

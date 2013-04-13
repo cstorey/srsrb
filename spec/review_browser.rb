@@ -126,6 +126,10 @@ module SRSRB
       parent.parse
     end
 
+    def save!
+      add_card!
+    end
+
     def last_added_card_id
       id = browser.find('#last-added-card-id').text
       LexicalUUID.new id
@@ -146,6 +150,13 @@ module SRSRB
       browser.all('.card-field').
         map { |f| f[:id].gsub(/^field-/, '') }
     end
+
+    def card_field_dict
+      card_fields.
+        map { |f| [f, browser.find("#field-#{f}").value] }.
+        into { |kvs| Hash[kvs] }
+    end
+
   end
 
   class ModelEditorPage < Page

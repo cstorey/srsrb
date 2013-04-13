@@ -131,19 +131,20 @@ describe :SkeletonBehavior do
     end
 
     it "should be possible to edit existing cards" do
-      pending "incomplete" do
-      with_default_cards 0...1
+      card_id, = with_default_cards 0...1
       cards = browser.list_cards
       card = cards.nth 1
+      expect(card[:question]).to be == "question 0"
+      expect(card[:answer]).to be == "answer 0"
+
       card[:question] = 'こんにちは'
-      card[:question] = 'じゃ、またね'
-      card_id = card.save!
+      card[:answer] = 'じゃ、またね'
+      card.save!
 
       should_see_reviews(
         [{day: 0, should_see: {card_id => [:good]}}],
         questions: {card_id =>'こんにちは'},
         answers: {card_id => 'じゃ、またね'})
-      end
     end
     it "should be possible to trash existing cards"
   end

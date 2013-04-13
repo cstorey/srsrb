@@ -249,10 +249,27 @@ module SRSRB
       let (:card_fields) { { 'word' => 'foo', 'meaning' => 'metasyntax', 'reading' => 'fffuuu' } }
       let (:card_data) { OpenStruct.new( id: LexicalUUID.new, fields: card_fields) }
 
+      before do
+        deck_view.stub(:editable_card_for).with(card_data.id).and_return(card_data)
+      end
+
       it "should yield a card edit form" do
-        deck_view.stub(:editable_card_for).and_return(card_data)
         page = browser.get_card_edit_page card_data.id.to_guid
         expect(page).to be_kind_of CardEditorPage
+      end
+
+      it "should show the  current fields" do
+        page = browser.get_card_edit_page card_data.id.to_guid
+        expect(page.card_field_dict).to be == card_fields
+      end
+
+
+      it "should save the updated data" do
+        page = browser.get_card_edit_page card_data.id.to_guid
+
+        decks.should_receive(:add_or_edit_card!).with card_data.id, card_fields
+
+        page.save!
       end
     end
   end

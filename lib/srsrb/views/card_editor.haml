@@ -10,9 +10,10 @@
                 &= name
 
       %div.large-8.columns
-        - card_fields.each do |field|
+        - pp card_fields: card_fields
+        - card_fields.each do |field, value|
           %label&= field
-          %textarea(class='card-field' name="field-#{field}" id="field-#{field}")
+          %textarea(class='card-field' name="field-#{field}" id="field-#{field}")&= value
         %button add card
 
   -# Hack for the system tests

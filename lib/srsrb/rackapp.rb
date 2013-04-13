@@ -153,12 +153,32 @@ module SRSRB
     end
 
     def show_card_edit_form card_id
+      card_id = LexicalUUID.new(card_id)
       card = deck_view.editable_card_for(card_id)
       haml :card_editor, locals: {
         last_card_id: nil,
         card_models: [], # TODO
-        card_fields: card.fields.keys
+        card_fields: card.fields
       }
+    end
+
+    post '/editor/:card_id' do
+      save_card!
+    end
+
+    def save_card!
+      card_id = LexicalUUID.new(params[:card_id])
+      pp req: request.env
+      pp params: params
+      card_fields = params.flat_map { |k, v|
+        m = /^field-(.*)/.match(k)
+        pp k: k, v:v, m:m
+        m ? [m[1], v] : []
+      }.into { |kvs| Hash[*kvs] }
+      pp card_fields: card_fields
+
+      decks.add_or_edit_card! card_id, card_fields
+      redirect "/editor/#{card_id.to_guid}", 303
     end
 
     private

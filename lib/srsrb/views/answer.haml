@@ -1,7 +1,11 @@
 %div#answer-page.page
   %form{method: 'POST'}
-    %div#answer
-      &= card.answer
-    %button{name: 'score', value: 'fail'} fail
-    %button{name: 'score', value: 'poor'} poor
-    %button{name: 'score', value: 'good'} good
+    %div.row
+      %div.large-12.columns#answer
+        &= card.answer
+    %hr
+    %div.row
+      %div.large-12.columns
+        %button{name: 'score', value: 'fail'} fail
+        %button{name: 'score', value: 'poor'} poor
+        %button{name: 'score', value: 'good'} good

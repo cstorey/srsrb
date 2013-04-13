@@ -1,8 +1,11 @@
 %div#question-page.page
   %div{'data-card-id' => card.id.to_guid}
   %form{action: card.id.to_guid}
-    %div#question
-      &= card.question
+    %div.row#question
+      %div.large-12.columns
+        &= card.question
 
-    %button#show_answer
-      show answer
+    %hr
+      %div.large-12.columns
+        %button#show_answer
+          show answer

@@ -1,10 +1,16 @@
 %div#card-editor-list-page.page
 
   %table
+    %thead
+      %tr
+        %th Question
+        %th Answer
     %tbody
       - deck_view.all_cards.each do |card|
         %tr.card
           %td
             %a{href: card.id.to_guid}
               &= card.question
-
+          %td
+            %a{href: card.id.to_guid}
+              &= card.answer

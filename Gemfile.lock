@@ -74,6 +74,9 @@ GEM
     puma (1.6.3)
       rack (~> 1.2)
     rack (1.5.2)
+    rack-flash3 (1.0.3)
+      rack
+      rack
     rack-protection (1.5.0)
       rack
     rack-test (0.6.2)
@@ -127,6 +130,7 @@ DEPENDENCIES
   lexical_uuid
   mutant
   puma
+  rack-flash3
   rake
   rb-fsevent (~> 0.9)
   rspec

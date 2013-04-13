@@ -10,6 +10,9 @@ gem 'atomic'
 
 gem 'rack-flash3'
 
+gem 'snappy'
+gem 'leveldb-ruby'
+
 group :production do
     gem 'puma'
 end

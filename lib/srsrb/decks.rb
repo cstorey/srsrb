@@ -57,12 +57,12 @@ module SRSRB
   class CardEditing
     def initialize event_store, models
       self.event_store = event_store
-      self.model_ids_by_card = Hamster.hash
+      self.model_ids_by_card = Atomic.new Hamster.hash
       self.models = models
     end
 
     def add_or_edit_card! id, data
-      model_id = model_ids_by_card.fetch(id) { fail "Missing model for card #{id.to_guid} " }
+      model_id = model_ids_by_card.get.fetch(id) { fail "Missing model for card #{id.to_guid} " }
       expected_fields = models.fetch(model_id).fields
       missing_fields = (expected_fields - data.keys)
       raise FieldMissingException if not missing_fields.empty?
@@ -72,7 +72,7 @@ module SRSRB
 
     def set_model_for_card! card_id, model_id
       event_store.record! card_id, CardModelChanged.new(model_id: model_id)
-      self.model_ids_by_card = model_ids_by_card.put(card_id, model_id)
+      model_ids_by_card.update { |idx| idx.put(card_id, model_id) }
     end
 
     private

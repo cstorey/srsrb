@@ -95,7 +95,7 @@ module SRSRB
     let (:deck_view) { mock(:deck_view_model) }
     let (:decks) { mock(:decks) }
     let (:plain_app) { CardEditorApp.new deck_view, decks }
-    let (:app) { plain_app } # Rack::CommonLogger.new plain_app, $stderr }
+    let (:app) { plain_app.into { |app| Rack::Session::Pool.new app } } # Rack::CommonLogger.new plain_app, $stderr }
     let (:browser) { ReviewBrowser.new app }
 
     let (:card) { OpenStruct.new(
@@ -278,7 +278,7 @@ module SRSRB
     let (:deck_view) { mock(:deck_view_model) }
     let (:decks) { mock(:decks) }
     let (:plain_app) { ModelEditorApp.new deck_view, decks }
-    let (:app) { plain_app } # Rack::CommonLogger.new plain_app, $stderr }
+    let (:app) { plain_app.into { |app| Rack::Session::Pool.new app } } # Rack::CommonLogger.new plain_app, $stderr }
     let (:browser) { ReviewBrowser.new app }
 
     let (:card) { OpenStruct.new(
@@ -390,7 +390,7 @@ module SRSRB
 
     let (:parent_app) { ReviewsApp.new deck_view, card_reviews }
     let (:plain_app) { SystemTestHackApi.new(parent_app, deck_view, card_editing, model_editing) }
-    let (:app) { plain_app } # Rack::CommonLogger.new plain_app, $stderr }
+    let (:app) { plain_app.into { |app| Rack::Session::Pool.new app } } # Rack::CommonLogger.new plain_app, $stderr }
     let (:browser) { ReviewBrowser.new app }
 
 

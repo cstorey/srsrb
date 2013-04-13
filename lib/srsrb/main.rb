@@ -38,10 +38,17 @@ module SRSRB
     lazy(:app2) { ModelEditorApp.new deck, model_editing, app1 }
     lazy(:app3) { SystemTestHackApi.new(app2, deck, card_editing, model_editing) }
 
+    lazy(:app4) { Rack::Session::Pool.new app3, :key => 'rack.session',
+                           #:domain => 'foo.com',
+                           :path => '/',
+                           :expire_after => 2592000, # In seconds
+                           :secret => 'change_me'
+    }
+
     def assemble
       deck.start!
       models.start!
-      app3
+      app4
     end
   end
 end

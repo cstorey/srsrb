@@ -11,13 +11,6 @@ module SRSRB
       self.decks = decks
     end
 
-    use Rack::Session::Cookie, :key => 'rack.session',
-                           #:domain => 'foo.com',
-                           :path => '/',
-                           :expire_after => 2592000, # In seconds
-                           :secret => 'change_me'
-
-
     get '/reviews/' do
       show_next_question
     end
@@ -74,11 +67,6 @@ module SRSRB
       self.decks = decks
     end
 
-    use Rack::Session::Cookie, :key => 'rack.session',
-                           #:domain => 'foo.com',
-                           :path => '/',
-                           :expire_after => 2592000, # In seconds
-                           :secret => 'change_me'
 
     get '/editor/new' do
       show_card_edit_form_for_default_model
@@ -192,12 +180,6 @@ module SRSRB
       self.decks = decks
     end
 
-    use Rack::Session::Cookie, :key => 'rack.session',
-                           #:domain => 'foo.com',
-                           :path => '/',
-                           :expire_after => 2592000, # In seconds
-                           :secret => 'change_me'
-
 
     # Model editing
     get '/model/new' do
@@ -247,13 +229,6 @@ module SRSRB
       self.card_editing = card_editing
       self.model_editing = model_editing
     end
-
-    use Rack::Session::Cookie, :key => 'rack.session',
-                           #:domain => 'foo.com',
-                           :path => '/',
-                           :expire_after => 2592000, # In seconds
-                           :secret => 'change_me'
-
 
     get '/raw-cards/:id' do
       raw_card_json_hack

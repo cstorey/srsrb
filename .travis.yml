@@ -5,3 +5,7 @@ rvm:
   - 2.0.0
   #- jruby-19mode # JRuby in 1.9 mode
   - rbx-19mode
+matrix:
+  allow_failures:
+    # Reliably segfaults.
+    - rvm: 2.0.0

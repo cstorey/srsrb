@@ -244,6 +244,17 @@ module SRSRB
         expect(the_card)
       end
     end
+
+    describe 'GET /editor/:card_id' do
+      let (:card_fields) { { 'word' => 'foo', 'meaning' => 'metasyntax', 'reading' => 'fffuuu' } }
+      let (:card_data) { OpenStruct.new( id: LexicalUUID.new, fields: card_fields) }
+
+      it "should yield a card edit form" do
+        deck_view.stub(:editable_card_for).and_return(card_data)
+        page = browser.get_card_edit_page card_data.id.to_guid
+        expect(page).to be_kind_of CardEditorPage
+      end
+    end
   end
 
   describe ModelEditorApp do

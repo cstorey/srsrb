@@ -148,6 +148,19 @@ module SRSRB
       haml :card_editor_list, locals: { deck_view: deck_view }
     end
 
+    get '/editor/:card_id' do
+      show_card_edit_form params[:card_id]
+    end
+
+    def show_card_edit_form card_id
+      card = deck_view.editable_card_for(card_id)
+      haml :card_editor, locals: {
+        last_card_id: nil,
+        card_models: [], # TODO
+        card_fields: card.fields.keys
+      }
+    end
+
     private
     attr_accessor :deck_view, :decks
   end

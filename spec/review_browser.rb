@@ -60,6 +60,11 @@ module SRSRB
       parse
     end
 
+    def get_card_edit_page card_id
+      browser.visit "/editor/#{card_id}"
+      parse
+    end
+
     attr_accessor :app, :browser
   end
 
@@ -184,7 +189,7 @@ module SRSRB
       puts browser.html
       rows = browser.all("tr.card:nth-child(#{n})")
       pp rows: rows.first
-      rows.first.find('a').click
+      rows.first.find('td:nth-child(1) a').click
       parent.parse
     end
   end

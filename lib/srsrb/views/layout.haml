@@ -1,0 +1,9 @@
+%html
+  %head
+    %meta{:content => "width=device-width", :name => "viewport"}/
+    %link{:href => "/css/normalize.css", :rel => "stylesheet"}/
+    %link{:href => "/css/foundation.css", :rel => "stylesheet"}/
+    %script{:src => "/js/vendor/custom.modernizr.js"}
+  %body
+    %div{style: 'border: thin solid black; padding: 1em; margin: 1em;'}
+      = yield

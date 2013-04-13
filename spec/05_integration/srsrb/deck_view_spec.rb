@@ -69,6 +69,13 @@ module SRSRB
       end
     end
 
+    describe "#editable_card_for" do
+      let (:an_id) { LexicalUUID.new }
+      it "returns nil with no cards" do
+        expect(deck.editable_card_for an_id).to be_nil
+      end
+    end
+
     describe "#start!" do
       before do
         deck.start!
@@ -132,6 +139,15 @@ module SRSRB
           known_cards = deck.all_cards.map(&:id).to_set
           expect(known_cards).to have(1).items
           expect(known_cards).to include(id)
+        end
+
+        context "#editable_card_for" do
+          it "should record an editable card the given id" do
+            expect(deck.editable_card_for(id).id).to be == id
+          end
+          it "should record an editable card the given fields" do
+            expect(deck.editable_card_for(id).fields).to be == card_fields
+          end
         end
       end
 

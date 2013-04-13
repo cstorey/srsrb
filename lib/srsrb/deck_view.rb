@@ -2,6 +2,7 @@ require 'hamsterdam'
 require 'hamster/queue'
 require 'hamster/hash'
 require 'hamster/vector'
+require 'atomic'
 
 module SRSRB
   class DeckViewModel
@@ -11,6 +12,7 @@ module SRSRB
       self._card_models = Hamster.hash
       self._card_model_ids = Hamster.vector
       self._card_model_id_by_card = Hamster.hash
+      self._editable_cards = Atomic.new(Hamster.hash)
     end
 
     def start!
@@ -43,6 +45,12 @@ module SRSRB
       cards.values
     end
 
+    def editable_card_for id
+        pp get: id, editable_cards: _editable_cards.get
+      _editable_cards.get[id]
+    end
+
+
     def handle_event id, event
       case event
         when CardReviewed then handle_card_reviewed id, event
@@ -69,6 +77,8 @@ module SRSRB
       answer = model.format_answer_with(event.card_fields)
 
       update_card(id) { |card| card.set_question(question).set_answer(answer) }
+      _editable_cards.update { |oldver| oldver.put(id, EditableCard.new(id: id, fields: event.card_fields)) }
+      pp editable_cards_update: _editable_cards.get
     end
 
     def handle_card_model_changed id, event
@@ -112,7 +122,7 @@ module SRSRB
       _card_models.find { |m| true }.last
     end
 
-    attr_accessor :queue, :cards, :event_store, :_card_models, :_card_model_ids, :_card_model_id_by_card
+    attr_accessor :queue, :cards, :event_store, :_card_models, :_card_model_ids, :_card_model_id_by_card, :_editable_cards
   end
 
   class Card < Hamsterdam::Struct.define(:id, :question, :answer, :review_count, :due_date)
@@ -128,6 +138,10 @@ module SRSRB
       super || 0
     end
   end
+
+  class EditableCard < Hamsterdam::Struct.define(:id, :fields)
+  end
+
   class CardFormat < Hamsterdam::Struct.define(:id, :name, :fields, :question_template, :answer_template)
     def fields
       super || Hamster.vector

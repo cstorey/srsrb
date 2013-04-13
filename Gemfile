@@ -6,6 +6,7 @@ gem 'hamster'
 gem 'hamsterdam'
 gem 'haml'
 gem 'lexical_uuid'
+gem 'atomic'
 
 group :production do
     gem 'puma'

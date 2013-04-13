@@ -221,6 +221,15 @@ module SRSRB
 
       it "should indicate a problem when the question other is missing"
       end
+
+      context "with no card models" do
+        let (:model_names) { [] }
+
+        it "should return an appropriate message" do
+          page = browser.get_add_card_page
+          expect(page).to be_kind_of CardModelMissingErrorPage
+        end
+      end
     end
 
     describe 'GET /editor/' do

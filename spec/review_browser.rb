@@ -34,6 +34,8 @@ module SRSRB
         ModelEditorPage.new(browser, self)
       when 'card-editor-list-page'
         CardEditorListPage.new(browser, self)
+      when 'card-model-missing-error-page'
+        CardModelMissingErrorPage.new(browser, self)
       else
         fail "No page id recognised: #{id}"
       end
@@ -185,5 +187,7 @@ module SRSRB
       rows.first.find('a').click
       parent.parse
     end
+  end
+  class CardModelMissingErrorPage < Page
   end
 end

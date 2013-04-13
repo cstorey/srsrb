@@ -86,7 +86,11 @@ module SRSRB
 
     def show_card_edit_form_for_default_model
       model_id = deck_view.card_models.first
-      redirect "/editor/new/#{model_id.to_guid}", 303
+      if model_id
+        redirect "/editor/new/#{model_id.to_guid}", 303
+      else
+        haml :card_model_missing
+      end
     end
 
     get '/editor/new/:model_id' do

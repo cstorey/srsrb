@@ -12,7 +12,7 @@ module SRSRB
       db.count
       seqid, _ = db.each(reversed:true).first
       if seqid
-        seqid.unpack('w').first + 1
+        decode_id(seqid) + 1
       else
         0
       end
@@ -67,6 +67,11 @@ module SRSRB
     def encode_id(n)
       [n].pack('w')
     end
+
+    def decode_id seqid
+      seqid.unpack('w').first
+    end
+
     attr_accessor :db, :recipients
   end
 end

@@ -136,7 +136,7 @@ module SRSRB
     end
 
     def card_fields
-      browser.all('input.card-field').
+      browser.all('.card-field').
         map { |f| f[:id].gsub(/^field-/, '') }
     end
   end
@@ -152,7 +152,7 @@ module SRSRB
     end
 
     def field_names
-      browser.all('input.field-name').map { |r| r.value }
+      browser.all('.field-name').map { |r| r.value }
     end
 
     def add_field name

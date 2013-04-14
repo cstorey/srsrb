@@ -13,7 +13,7 @@ module SRSRB
     end
 
     def storedir
-      '/tmp/srsrb.events.%d.%s' % [Process.uid, LexicalUUID.new.to_guid]
+      ENV.fetch('EVENT_STOREDIR') { '/tmp/srsrb.events.%d.%s' % [Process.uid, LexicalUUID.new.to_guid] }
     end
     def event_store
       @event_store ||= LevelDbEventStore.new storedir

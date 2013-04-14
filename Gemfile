@@ -2,7 +2,9 @@ source "https://rubygems.org/"
 ruby '1.9.3' unless ENV.has_key? 'RUBY_VERSION'
 
 gem 'sinatra'
-gem 'hamster'
+gem 'hamster',
+  git: 'git://github.com/cstorey/hamster.git',
+  ref: 'marshal-support'
 gem 'hamsterdam'
 gem 'haml'
 gem 'lexical_uuid'

@@ -20,7 +20,7 @@ module SRSRB
 
     def record! id, event
       # BER encoded; lexicographically sorted.
-      db.put nextid, dump(id, event)
+      db.put nextid, dump(id, event), sync: true
 
       notify_recipients id, event
     end

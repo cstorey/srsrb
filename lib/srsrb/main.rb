@@ -58,9 +58,14 @@ module SRSRB
     end
 
     def assemble
+      at_exit { shutdown }
       deck.start!
       models.start!
       app4
+    end
+
+    def shutdown
+      event_store.close
     end
   end
 end

@@ -1,4 +1,5 @@
 require 'srsrb/object_patch'
+require 'capybara'
 
 module SRSRB
   class ReviewBrowser

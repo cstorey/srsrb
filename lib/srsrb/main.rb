@@ -36,32 +36,36 @@ module SRSRB
     end
 
     # We really want layered mixins for this.
-    def app0
+    def reviews_app
       ReviewsApp.new deck, deck_reviews
     end
-    def app1
-      CardEditorApp.new deck, card_editing, app0
+    def card_editor_app
+      CardEditorApp.new deck, card_editing
     end
-    def app2
-      ModelEditorApp.new deck, model_editing, app1
+    def model_editor_app
+      ModelEditorApp.new deck, model_editing
     end
-    def app3
-      SystemTestHackApi.new(app2, deck, card_editing, model_editing)
+    def system_test_hack_api
+      SystemTestHackApi.new(nil, deck, card_editing, model_editing)
     end
 
-    def app4
-      Rack::Session::Pool.new app3, :key => 'rack.session',
+    def app
+      Rack::Cascade.new(
+        [reviews_app, card_editor_app, model_editor_app, system_test_hack_api]
+      ).into { |app|
+        Rack::Session::Pool.new app, :key => 'rack.session',
                            #:domain => 'foo.com',
                            :path => '/',
                            :expire_after => 2592000, # In seconds
                            :secret => 'change_me'
+      }
     end
 
     def assemble
       at_exit { shutdown }
       deck.start!
       models.start!
-      app4
+      app
     end
 
     def shutdown

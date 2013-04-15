@@ -9,7 +9,6 @@ module SRSRB
     end
 
     def count
-      db.count
       seqid, _ = db.each(reversed:true).first
       if seqid
         decode_id(seqid) + 1

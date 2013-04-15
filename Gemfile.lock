@@ -1,7 +1,7 @@
 GIT
-  remote: git://github.com/cstorey/hamster.git
-  revision: 6bdf381256cd7b5c809741dab65032f7bf0437d6
-  ref: marshal-support
+  remote: git://github.com/harukizaemon/hamster.git
+  revision: 0826fec977007541fe78c22e62cdb2e6c4318cce
+  ref: 0826fec977
   specs:
     hamster (0.4.3)
 

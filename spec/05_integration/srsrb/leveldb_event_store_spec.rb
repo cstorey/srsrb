@@ -1,6 +1,7 @@
 require 'srsrb/leveldb_event_store'
 require 'lexical_uuid'
 require 'hamsterdam'
+require 'tempfile'
 require_relative 'event_store_examples'
 
 module SRSRB

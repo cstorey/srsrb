@@ -18,7 +18,6 @@ module SRSRB
     end
 
     def record! id, event
-      # BER encoded; lexicographically sorted.
       db.put nextid, dump(id, event), sync: true
 
       notify_recipients id, event
@@ -64,11 +63,11 @@ module SRSRB
     end
 
     def encode_id(n)
-      [n].pack('w')
+      [ n << 32, n ].pack('NN')
     end
 
     def decode_id seqid
-      seqid.unpack('w').first
+      seqid.unpack('NN').inject(0) { |acc, n| (acc << 32) + n }
     end
 
     attr_accessor :db, :recipients

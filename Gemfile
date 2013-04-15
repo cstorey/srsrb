@@ -3,8 +3,8 @@ ruby '1.9.3' unless ENV.has_key? 'RUBY_VERSION'
 
 gem 'sinatra'
 gem 'hamster',
-  git: 'git://github.com/cstorey/hamster.git',
-  ref: 'marshal-support'
+  git: 'git://github.com/harukizaemon/hamster.git',
+  ref: '0826fec977'
 gem 'hamsterdam'
 gem 'haml'
 gem 'lexical_uuid'

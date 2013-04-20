@@ -42,6 +42,12 @@ module SRSRB
       self.subscribers = subscribers.add listener
     end
 
+    def events_for_stream stream_id
+      events.each do |commit|
+        yield commit.data, commit.version if commit.stream_id == stream_id
+      end
+    end
+
     def count
       events.size
     end

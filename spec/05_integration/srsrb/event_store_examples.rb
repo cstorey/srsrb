@@ -93,6 +93,23 @@ module SRSRB
 
       it "should explicitly support multiple subscribers"
     end
+
+    describe "#events_for_stream" do
+      it "should yield all of the current events for a given stream" do
+        version = event_store.record! a_stream, some_event
+        expect do |p|
+          event_store.events_for_stream a_stream, &p
+        end.to yield_successive_args([some_event, version])
+      end
+
+      it "should yield only the current events for a given stream" do
+        event_store.record! LexicalUUID.new, some_event
+        expect do |p|
+          event_store.events_for_stream a_stream, &p
+        end.to yield_successive_args()
+      end
+
+    end
   end
 
 end

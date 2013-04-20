@@ -61,6 +61,11 @@ module SRSRB
       end
     end
 
+    def events_for_stream stream_id
+      each_event do |id, event, version|
+        yield event, version if id == stream_id
+      end
+    end
 
     def close
       db.close

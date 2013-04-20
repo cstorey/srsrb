@@ -8,7 +8,7 @@ class FakeEventStore
   end
 
   def record! id, event
-    listener.handle_event id, event
+    listener.handle_event id, event, 42
   end
 
   private

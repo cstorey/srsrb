@@ -49,8 +49,7 @@ module SRSRB
       _editable_cards.get[id]
     end
 
-
-    def handle_event id, event
+    def handle_event id, event, _version
       case event
         when CardReviewed then handle_card_reviewed id, event
         when CardEdited then handle_card_edited id, event

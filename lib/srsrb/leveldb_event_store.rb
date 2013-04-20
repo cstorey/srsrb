@@ -12,16 +12,18 @@ module SRSRB
       self.recipients = Set.new
     end
 
-    def count
+    def current_version
       seqid, _ = db.get(GLOBAL_VERSION_KEY, nil)
       if seqid
-        decode_id(seqid) + 1
+        decode_id(seqid)
       else
-        0
+        -1
       end
     end
 
-    alias_method :current_version, :count
+    def count
+      current_version + 1
+    end
 
     UNDEFINED = Object.new
     def record! id, event, expected_version=UNDEFINED
@@ -33,24 +35,29 @@ module SRSRB
         stream_version = current_version
       end
 
+      stream_version += 1
+
       raise WrongEventVersionError if expected_version != UNDEFINED && expected_version != current_version
       $stderr.puts "No version passed to #{self.class.name}#record! at #{caller[0]}" if expected_version == UNDEFINED
 
-      key = nextid; val = dump(id, event)
+      event_id = current_version.succ
+      key = encode_id(event_id)
+      val = dump(id, event)
+
       db.batch do |batch|
         batch.put(key, val)
         batch.put(stream_version_key(id), "%016x" % [stream_version])
         batch.put(GLOBAL_VERSION_KEY, key)
       end
 
-      notify_recipients id, event
-      current_version
+      notify_recipients id, event, event_id
+      event_id
     end
 
     def subscribe recipient
       recipients << recipient
-      each_event do |id, event|
-        recipient.handle_event id, event
+      each_event do |id, event, version|
+        recipient.handle_event id, event, version
       end
     end
 
@@ -61,9 +68,9 @@ module SRSRB
 
     private
 
-    def notify_recipients id, event
+    def notify_recipients id, event, version
       recipients.each do |r|
-        r.handle_event id, event
+        r.handle_event id, event, version
       end
     end
 
@@ -72,7 +79,9 @@ module SRSRB
       return if not last_event
       db.each(from: EVENT_PREFIX, to: last_event) do |seqid, blob|
         id, event = undump(blob)
-        yield id, event
+        version = decode_id(seqid)
+        pp seqid => [id.to_guid, event, version]
+        yield id, event, version
       end
     end
 

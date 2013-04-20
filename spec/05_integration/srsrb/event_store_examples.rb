@@ -57,12 +57,15 @@ module SRSRB
       it "should iterate over all events added to the store in turn" do
         expected_yield_args = events.map { |e| [a_stream, e] }
 
+        version = event_store.current_version
+        versions = []
         events.each do |e|
-          event_store.record! a_stream, e
+          version = event_store.record! a_stream, e, version
+          versions << version
         end
 
-        events.each do |evt|
-          listener.should_receive(:handle_event).with(a_stream, evt)
+        events.zip(versions).each do |(evt, version)|
+          listener.should_receive(:handle_event).with(a_stream, evt, version)
         end
 
         event_store.subscribe listener
@@ -71,9 +74,21 @@ module SRSRB
       it "should fire the block when new events arrive" do
         event_store.subscribe listener
 
-        listener.should_receive(:handle_event).with(a_stream, some_event)
+        listener.should_receive(:handle_event).with(a_stream, some_event, anything)
 
         event_store.record! a_stream, some_event
+      end
+
+      it "should notify the handler of the version for each event" do
+        event_store.subscribe listener
+
+        emitted_version = nil
+        listener.stub(:handle_event) do |_, _, v|
+          emitted_version = v
+        end
+
+        recorded_version = event_store.record! a_stream, some_event
+        expect(emitted_version).to be == recorded_version
       end
 
       it "should explicitly support multiple subscribers"

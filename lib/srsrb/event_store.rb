@@ -20,15 +20,15 @@ module SRSRB
 
       $stderr.puts "No version passed to #{self.class.name}#record! at #{caller[0]}" if expected_version == UNSPECIFIED
 
-      commit = Commit.new stream_id: stream_id, data: event
-      self.events = events.add(commit)
+      stream_version = current_version.succ
 
-      stream_version = current_version
+      commit = Commit.new stream_id: stream_id, data: event, version: stream_version
+      self.events = events.add(commit)
 
       versions.update { |vs| vs.put(stream_id, stream_version) }
 
       subscribers.each do |listener|
-        listener.handle_event stream_id, event
+        listener.handle_event stream_id, event, stream_version
       end
 
       stream_version
@@ -36,7 +36,7 @@ module SRSRB
 
     def subscribe listener
       events.each do |commit|
-        listener.handle_event commit.stream_id, commit.data
+        listener.handle_event commit.stream_id, commit.data, commit.version
       end
 
       self.subscribers = subscribers.add listener
@@ -54,5 +54,5 @@ module SRSRB
     attr_accessor :events, :subscribers, :versions
   end
 
-  Commit = Hamsterdam::Struct.define(:stream_id, :data)
+  Commit = Hamsterdam::Struct.define(:stream_id, :data, :version)
 end

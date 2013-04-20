@@ -140,7 +140,7 @@ module SRSRB
       models.get[id]
     end
 
-    def handle_event id, event
+    def handle_event id, event, _version
       return unless event.kind_of? ModelFieldAdded
       models.update do |models|
         models.fetch(id) { CardModel.new(fields: Hamster.set) }.

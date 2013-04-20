@@ -37,11 +37,11 @@ module SRSRB
       events.size
     end
 
-    private
-
     def current_version
       events.size
     end
+
+    private
     attr_accessor :events, :subscribers
   end
 

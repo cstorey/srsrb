@@ -18,13 +18,13 @@ module SRSRB
       end
 
       it "should return a unique event id" do
-        version0 = event_store.record! a_stream, some_event
+        version0 = event_store.current_version
         version1 = event_store.record! a_stream, some_event, version0
         expect(version0).to be < version1
       end
 
       it "should abort iff we pass the wrong version" do
-        version0 = event_store.record! a_stream, some_event
+        version0 = event_store.current_version
         version1 = event_store.record! a_stream, some_event, version0
         expect  do
           event_store.record! a_stream, some_event, version0

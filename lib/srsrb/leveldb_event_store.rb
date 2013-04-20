@@ -17,15 +17,17 @@ module SRSRB
       end
     end
 
+    alias_method :current_version, :count
+
     UNDEFINED = Object.new
     def record! id, event, expected_version=UNDEFINED
-      raise WrongEventVersionError if expected_version != UNDEFINED && expected_version != count
+      raise WrongEventVersionError if expected_version != UNDEFINED && expected_version != current_version
       $stderr.puts "No version passed to #{self.class.name}#record! at #{caller[0]}" if expected_version == UNDEFINED
 
       db.put nextid, dump(id, event), sync: true
 
       notify_recipients id, event
-      count
+      current_version
     end
 
     def subscribe recipient

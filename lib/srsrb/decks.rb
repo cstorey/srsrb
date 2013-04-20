@@ -22,7 +22,16 @@ module SRSRB
     end
 
     def score_card! card_id, score
-      update_card(card_id) { |card| card.score_as(score) }
+      # If we do this inside the Atomic#update test-and-set loop, then because
+      # the event store broadcasts updates to listeners synchronously
+      # (including ourselves). So, it's best to trust (!) that the version
+      # checks in the event store will catch any badness.
+
+      card = cards.get.fetch(card_id) {
+        ReviewableCard.new(id: card_id, store: event_store, next_due_date: 0, interval: 0)
+      }
+      card = card.score_as(score)
+      update_card(card_id) { |_| card }
     end
 
     private

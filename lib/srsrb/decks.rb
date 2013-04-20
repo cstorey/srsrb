@@ -46,7 +46,8 @@ module SRSRB
       end
 
       next_due_date = self.next_due_date + interval
-      store.record! id, CardReviewed.new(score: score, next_due_date: next_due_date)
+      event = CardReviewed.new score: score, next_due_date: next_due_date, interval: interval
+      store.record! id, event
       self.set_interval(interval).set_next_due_date(next_due_date)
     end
 

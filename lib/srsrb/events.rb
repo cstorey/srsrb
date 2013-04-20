@@ -1,7 +1,7 @@
 require 'hamsterdam'
 
 module SRSRB
-  CardReviewed = Hamsterdam::Struct.define(:score, :next_due_date)
+  CardReviewed = Hamsterdam::Struct.define(:score, :next_due_date, :interval)
   CardEdited = Hamsterdam::Struct.define(:card_fields)
   CardModelChanged = Hamsterdam::Struct.define(:model_id)
   ModelNamed = Hamsterdam::Struct.define(:name)

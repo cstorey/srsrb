@@ -62,6 +62,36 @@ module SRSRB
       it "should use a minimum interval of 1 when the card is scored failed scored as poor" do
         expect(next_due_dates_of [:good, :good, :fail, :poor]).to be == [1, 3, 3, 4]
       end
+
+      def intervals_of scores
+        intervals = []
+        event_store.stub(:record!) do |id, event|
+          intervals << event.interval
+        end
+
+        scores.each { |score| decks.score_card! card_id, score }
+
+        intervals
+      end
+
+      it "should increment spacing interval by a factor of two each time" do
+        expect(intervals_of [:good] * 4).to be == [1, 2, 4, 8]
+      end
+
+      it "should reset the intervals when a card is failed" do
+        expect(intervals_of [:good, :good, :fail, :good]).to be == [1, 2, 0, 1]
+      end
+
+      it "should re-use the same interval when the card is scored as poor" do
+        expect(intervals_of [:good, :good, :poor, :poor]).to be == [1, 2, 2, 2]
+      end
+      it "should use a minimum interval of 1 when the card is initially scored as poor" do
+        expect(intervals_of [:poor, :good, :good, :good]).to be == [1, 2, 4, 8]
+      end
+
+      it "should use a minimum interval of 1 when the card is scored failed scored as poor" do
+        expect(intervals_of [:good, :good, :fail, :poor]).to be == [1, 2, 0, 1]
+      end
     end
   end
 

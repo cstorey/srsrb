@@ -27,22 +27,31 @@ module SRSRB
       # (including ourselves). So, it's best to trust (!) that the version
       # checks in the event store will catch any badness.
 
-      card = cards.get.fetch(card_id) {
-        ReviewableCard.new(id: card_id, store: event_store, next_due_date: 0, interval: 0)
-      }
+      card = get_card card_id
       card = card.score_as(score)
       update_card(card_id) { |_| card }
     end
 
     private
+
+    def get_card card_id
+      cards.get.fetch(card_id) {
+        load_card_from_events card_id
+      }
+    end
+
+    def load_card_from_events card_id
+      card = ReviewableCard.new(id: card_id, store: event_store, next_due_date: 0, interval: 0)
+      event_store.events_for_stream card_id do |event, version|
+        card = card.apply(event, version)
+      end
+      card
+    end
+
     def update_card card_id
       cards.update do |cs|
         card = cs.fetch(card_id) {
-          card = ReviewableCard.new(id: card_id, store: event_store, next_due_date: 0, interval: 0)
-          event_store.events_for_stream card_id do |event, version|
-            card = card.apply(event)
-          end
-          card
+          load_card_from_events card_id
         }
         card = yield card
         cs.put card_id, card
@@ -52,7 +61,7 @@ module SRSRB
     attr_accessor :event_store, :cards
   end
 
-  class ReviewableCard < Hamsterdam::Struct.define(:id, :next_due_date, :interval, :store)
+  class ReviewableCard < Hamsterdam::Struct.define(:id, :version, :next_due_date, :interval, :store)
     def score_as score
       if good? score
         interval = [self.interval * 2, 1].max
@@ -64,14 +73,13 @@ module SRSRB
 
       next_due_date = self.next_due_date + interval
       event = CardReviewed.new score: score, next_due_date: next_due_date, interval: interval
-      store.record! id, event
-      self.set_interval(interval).set_next_due_date(next_due_date)
+      version = store.record! id, event
+      self.set_interval(interval).set_next_due_date(next_due_date).set_version(version)
     end
 
-    def apply event
+    def apply event, new_version
       return self if not event.kind_of? CardReviewed
-
-      self.set_interval(event.interval).set_next_due_date(event.next_due_date)
+      self.set_interval(event.interval).set_next_due_date(event.next_due_date).set_version(new_version)
     end
 
     private

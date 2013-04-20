@@ -30,8 +30,22 @@ module SRSRB
           event_store.record! a_stream, some_event, version0
         end.to raise_error(WrongEventVersionError)
       end
+
       context "when we have fixed all of the clients" do
         it "should only accept a nil version for a new stream"
+      end
+
+      it "should support versioning per-stream" do
+        pending
+        stream0 = LexicalUUID.new
+        stream1 = LexicalUUID.new
+        version0 = event_store.current_version
+        version0 = event_store.record! stream0, some_event, version0
+        version1 = event_store.current_version
+        version1 = event_store.record! stream1, some_event, version1
+
+        version0 = event_store.record! stream0, some_event, version0
+        version1 = event_store.record! stream1, some_event, version1
       end
     end
 

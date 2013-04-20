@@ -1,3 +1,5 @@
+require 'srsrb/errors'
+
 module SRSRB
   shared_examples_for :EventStore do
     AnEvent = Hamsterdam::Struct.define(:data)
@@ -10,8 +12,24 @@ module SRSRB
         end.to change { event_store.count }.by(1)
       end
 
-      it "should return the event id"
-      it "should abort iff we pass the wrong version"
+      it "should return an integer version" do
+        version = event_store.record! a_stream, some_event, nil
+        expect(version).to be_kind_of Integer
+      end
+
+      it "should return a unique event id" do
+        version0 = event_store.record! a_stream, some_event, nil
+        version1 = event_store.record! a_stream, some_event, version0
+        expect(version0).to be < version1
+      end
+
+      it "should abort iff we pass the wrong version" do
+        version0 = event_store.record! a_stream, some_event, nil
+        version1 = event_store.record! a_stream, some_event, version0
+        expect  do
+          event_store.record! a_stream, some_event, version0
+        end.to raise_error(WrongEventVersionError)
+      end
     end
 
     describe "#subscribe" do

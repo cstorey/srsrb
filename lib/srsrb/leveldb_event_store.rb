@@ -17,10 +17,13 @@ module SRSRB
       end
     end
 
-    def record! id, event
+    def record! id, event, expected_version=nil
+      raise WrongEventVersionError if expected_version && expected_version != count
+
       db.put nextid, dump(id, event), sync: true
 
       notify_recipients id, event
+      count
     end
 
     def subscribe recipient

@@ -17,8 +17,10 @@ module SRSRB
       end
     end
 
-    def record! id, event, expected_version=nil
-      raise WrongEventVersionError if expected_version && expected_version != count
+    UNDEFINED = Object.new
+    def record! id, event, expected_version=UNDEFINED
+      raise WrongEventVersionError if expected_version != UNDEFINED && expected_version != count
+      $stderr.puts "No version passed to #{self.class.name}#record! at #{caller[0]}" if expected_version == UNDEFINED
 
       db.put nextid, dump(id, event), sync: true
 

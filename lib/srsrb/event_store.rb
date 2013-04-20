@@ -6,12 +6,16 @@ require 'hamsterdam'
 module SRSRB
 
   class EventStore
+    UNSPECIFIED = Object.new
     def initialize
       self.events = Hamster.vector
       self.subscribers = Hamster.set
     end
-    def record! stream_id, event, expected_version=nil
-      raise WrongEventVersionError if expected_version && current_version != expected_version
+    def record! stream_id, event, expected_version=UNSPECIFIED
+      raise WrongEventVersionError if expected_version != UNSPECIFIED && current_version != expected_version
+
+      $stderr.puts "No version passed to #{self.class.name}#record! at #{caller[0]}" if expected_version == UNSPECIFIED
+
       commit = Commit.new stream_id: stream_id, data: event
       self.events = events.add(commit)
 

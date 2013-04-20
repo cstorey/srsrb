@@ -3,13 +3,17 @@ require 'leveldb'
 
 module SRSRB
   class LevelDbEventStore
+    EVENT_PREFIX = 'event/'
+    GLOBAL_VERSION_KEY = 'global_sequence'
+    STREAM_VERSION_KEY_FMT = 'stream/%s/version'
+
     def initialize storedir
       self.db = LevelDB::DB.new storedir
       self.recipients = Set.new
     end
 
     def count
-      seqid, _ = db.each(reversed:true).first
+      seqid, _ = db.get(GLOBAL_VERSION_KEY, nil)
       if seqid
         decode_id(seqid) + 1
       else
@@ -21,10 +25,23 @@ module SRSRB
 
     UNDEFINED = Object.new
     def record! id, event, expected_version=UNDEFINED
+      stream_version = db.get(stream_version_key(id), nil)
+
+      if stream_version
+        stream_version = Integer(stream_version, 16)
+      else
+        stream_version = current_version
+      end
+
       raise WrongEventVersionError if expected_version != UNDEFINED && expected_version != current_version
       $stderr.puts "No version passed to #{self.class.name}#record! at #{caller[0]}" if expected_version == UNDEFINED
 
-      db.put nextid, dump(id, event), sync: true
+      key = nextid; val = dump(id, event)
+      db.batch do |batch|
+        batch.put(key, val)
+        batch.put(stream_version_key(id), "%016x" % [stream_version])
+        batch.put(GLOBAL_VERSION_KEY, key)
+      end
 
       notify_recipients id, event
       current_version
@@ -51,7 +68,9 @@ module SRSRB
     end
 
     def each_event
-      db.each do |seqid, blob|
+      last_event = db.get(GLOBAL_VERSION_KEY)
+      return if not last_event
+      db.each(from: EVENT_PREFIX, to: last_event) do |seqid, blob|
         id, event = undump(blob)
         yield id, event
       end
@@ -69,17 +88,17 @@ module SRSRB
       encode_id(count)
     end
 
-    EVENT_PREFIX = 'event/'
     def encode_id(n)
       "%s%016x" % [EVENT_PREFIX, n]
-      #[ n << 32, n ].pack('NN')
     end
 
     def decode_id seqid
       fail "Not an event key!: #{seqid.inspect}" unless seqid.start_with? 'event/'
       Integer(seqid[EVENT_PREFIX.size..-1], 16)
     end
-
+    def stream_version_key id
+      STREAM_VERSION_KEY_FMT % id.to_guid
+    end
     attr_accessor :db, :recipients
   end
 end

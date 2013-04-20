@@ -25,19 +25,15 @@ module SRSRB
       update_card(card_id) { |card| card.score_as(score) }
     end
 
-    def start!
-      event_store.subscribe self
-    end
-
-    def handle_event id, event
-      update_card(id) { |card| card.apply(event) }
-    end
-
     private
     def update_card card_id
       cards.update do |cs|
         card = cs.fetch(card_id) {
-          ReviewableCard.new(id: card_id, store: event_store, next_due_date: 0, interval: 0)
+          card = ReviewableCard.new(id: card_id, store: event_store, next_due_date: 0, interval: 0)
+          event_store.events_for_stream card_id do |event, version|
+            card = card.apply(event)
+          end
+          card
         }
         card = yield card
         cs.put card_id, card

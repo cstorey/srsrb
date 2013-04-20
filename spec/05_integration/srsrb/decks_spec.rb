@@ -11,14 +11,12 @@ module SRSRB
     describe "#score_card!" do
       let (:previous_reviews) { [] }
       before do
-        event_store.stub(:subscribe) do |handler|
-          previous_reviews.each do |ev|
-            handler.handle_event card_id, ev
-          end
+        m = event_store.stub(:events_for_stream).with(card_id)
+        previous_reviews.each_with_index do |ev, idx|
+          m.and_yield(ev, idx)
         end
-
-        decks.start!
       end
+
       it "should record the score, and card in the event store" do
         event_store.should_receive(:record!).with(card_id, an_instance_of(CardReviewed))
         decks.score_card! card_id, :good

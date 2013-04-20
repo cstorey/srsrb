@@ -22,16 +22,28 @@ module SRSRB
     end
 
     def score_card! card_id, score
+      update_card(card_id) { |card| card.score_as(score) }
+    end
+
+    def start!
+      event_store.subscribe self
+    end
+
+    def handle_event id, event
+      update_card(id) { |card| card.apply(event) }
+    end
+
+    private
+    def update_card card_id
       cards.update do |cs|
-        card = cs.fetch(card_id) { 
+        card = cs.fetch(card_id) {
           ReviewableCard.new(id: card_id, store: event_store, next_due_date: 0, interval: 0)
         }
-        card = card.score_as(score)
+        card = yield card
         cs.put card_id, card
       end
     end
 
-    private
     attr_accessor :event_store, :cards
   end
 
@@ -49,6 +61,12 @@ module SRSRB
       event = CardReviewed.new score: score, next_due_date: next_due_date, interval: interval
       store.record! id, event
       self.set_interval(interval).set_next_due_date(next_due_date)
+    end
+
+    def apply event
+      return self if not event.kind_of? CardReviewed
+
+      self.set_interval(event.interval).set_next_due_date(event.next_due_date)
     end
 
     private

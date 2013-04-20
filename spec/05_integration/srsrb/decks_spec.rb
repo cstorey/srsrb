@@ -9,6 +9,16 @@ module SRSRB
     let (:card_id) { LexicalUUID.new }
 
     describe "#score_card!" do
+      let (:previous_reviews) { [] }
+      before do
+        event_store.stub(:subscribe) do |handler|
+          previous_reviews.each do |ev|
+            handler.handle_event card_id, ev
+          end
+        end
+
+        decks.start!
+      end
       it "should record the score, and card in the event store" do
         event_store.should_receive(:record!).with(card_id, an_instance_of(CardReviewed))
         decks.score_card! card_id, :good
@@ -91,6 +101,19 @@ module SRSRB
 
       it "should use a minimum interval of 1 when the card is scored failed scored as poor" do
         expect(intervals_of [:good, :good, :fail, :poor]).to be == [1, 2, 0, 1]
+      end
+
+      context "with some pre-existing reviews" do
+        let (:previous_reviews) { [CardReviewed.new(next_due_date: 10, interval: 5)] }
+        it "should carry on where it left off" do
+          expect(next_due_dates_of [:good] * 4).to be == [20, 40, 80, 160]
+        end
+      end
+      context "with some other things that happened to this card" do
+        let (:previous_reviews) { [CardEdited.new()] }
+        it "should just ignore them" do
+          expect(next_due_dates_of [:good] * 4).to be == [1, 3, 7, 15]
+        end
       end
     end
   end

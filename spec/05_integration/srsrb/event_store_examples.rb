@@ -79,4 +79,5 @@ module SRSRB
       it "should explicitly support multiple subscribers"
     end
   end
+
 end

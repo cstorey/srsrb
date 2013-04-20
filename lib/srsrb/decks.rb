@@ -1,5 +1,6 @@
 require 'srsrb/events'
 require 'hamster/hash'
+require 'atomic'
 
 # TODO: Split according to usage:
 #
@@ -17,34 +18,39 @@ module SRSRB
   class ReviewScoring
     def initialize event_store
       self.event_store = event_store
-      self.next_due_dates = Atomic.new Hamster.hash
-      self.intervals = Atomic.new Hamster.hash
+      self.cards = Atomic.new Hamster.hash
     end
 
     def score_card! card_id, score
-      prev_due_date = next_due_dates.get.fetch(card_id, 0)
+      cards.update do |cs|
+        card = cs.fetch(card_id) { 
+          ReviewableCard.new(id: card_id, store: event_store, next_due_date: 0, interval: 0)
+        }
+        card = card.score_as(score)
+        cs.put card_id, card
+      end
+    end
 
+    private
+    attr_accessor :event_store, :cards
+  end
+
+  class ReviewableCard < Hamsterdam::Struct.define(:id, :next_due_date, :interval, :store)
+    def score_as score
       if good? score
-        prev_interval = intervals.get.fetch(card_id, 0)
-        interval = [prev_interval * 2, 1].max
+        interval = [self.interval * 2, 1].max
       elsif poor? score
-        prev_interval = intervals.get.fetch(card_id, 0)
-        interval = [prev_interval, 1].max
+        interval = [self.interval, 1].max
       else
         interval = 0
       end
 
-      next_due_date = prev_due_date + interval
-
-      next_due_dates.update { |dates| dates.put(card_id, next_due_date) }
-      intervals.update { |intervals| intervals.put(card_id, interval) }
-
-      event_store.record! card_id, CardReviewed.new(score: score, next_due_date: next_due_date)
+      next_due_date = self.next_due_date + interval
+      store.record! id, CardReviewed.new(score: score, next_due_date: next_due_date)
+      self.set_interval(interval).set_next_due_date(next_due_date)
     end
 
     private
-    attr_accessor :event_store, :next_due_dates, :intervals
-
     def good? score
       score == :good
     end

@@ -69,12 +69,15 @@ module SRSRB
       encode_id(count)
     end
 
+    EVENT_PREFIX = 'event/'
     def encode_id(n)
-      [ n << 32, n ].pack('NN')
+      "%s%016x" % [EVENT_PREFIX, n]
+      #[ n << 32, n ].pack('NN')
     end
 
     def decode_id seqid
-      seqid.unpack('NN').inject(0) { |acc, n| (acc << 32) + n }
+      fail "Not an event key!: #{seqid.inspect}" unless seqid.start_with? 'event/'
+      Integer(seqid[EVENT_PREFIX.size..-1], 16)
     end
 
     attr_accessor :db, :recipients

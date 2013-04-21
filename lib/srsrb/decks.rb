@@ -110,12 +110,21 @@ module SRSRB
     end
 
     private
-    def events_for id
-      event_store.to_enum(:events_for_stream, id).to_a
+
+    class Card < Hamsterdam::Struct.define :version, :model_id
+      def apply event, version
+        set_version version
+      end
+    end
+
+    def get_card id
+      event_store.to_enum(:events_for_stream, id).inject(Card.new) { |card, (event, version)|
+        card.apply(event, version)
+      }
     end
 
     def version_of id
-      version = events_for(id).map(&:last).last
+      get_card(id).version
     end
     attr_accessor :event_store, :model_ids_by_card, :models
   end

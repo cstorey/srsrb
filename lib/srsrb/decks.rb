@@ -105,11 +105,18 @@ module SRSRB
     end
 
     def set_model_for_card! card_id, model_id
-      event_store.record! card_id, CardModelChanged.new(model_id: model_id)
+      event_store.record! card_id, CardModelChanged.new(model_id: model_id), version_of(card_id)
       model_ids_by_card.update { |idx| idx.put(card_id, model_id) }
     end
 
     private
+    def events_for id
+      event_store.to_enum(:events_for_stream, id).to_a
+    end
+
+    def version_of id
+      version = events_for(id).map(&:last).last
+    end
     attr_accessor :event_store, :model_ids_by_card, :models
   end
 

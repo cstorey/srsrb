@@ -149,13 +149,29 @@ module SRSRB
     let (:decks) { CardEditing.new event_store, models }
     let (:card_id) { LexicalUUID.new }
 
+    let (:previous_events) { [] }
+    before do
+      previous_events.inject(event_store.stub(:events_for_stream).with(card_id)) do |stub, (event, vers)|
+        stub.and_yield(event, vers)
+      end
+    end
 
     describe "#set_model_for_card!" do
       let (:card_id) { LexicalUUID.new }
       let (:new_model_id) { LexicalUUID.new }
       it "should record the change in the event store" do
-        event_store.should_receive(:record!).with(card_id, CardModelChanged.new(model_id: new_model_id))
+        event_store.should_receive(:record!).with(card_id, CardModelChanged.new(model_id: new_model_id), nil)
         decks.set_model_for_card! card_id, new_model_id
+      end
+
+      context "with previous events" do
+        let (:previous_events) { [[AnEvent.new, 42]] }
+
+        it "should use the most recent version" do
+          event_store.should_receive(:record!).
+            with(card_id, CardModelChanged.new(model_id: new_model_id), 42)
+          decks.set_model_for_card! card_id, new_model_id
+        end
       end
     end
 

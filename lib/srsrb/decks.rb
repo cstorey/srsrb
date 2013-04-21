@@ -128,7 +128,7 @@ module SRSRB
 
     # Model operations
     def name_model! id, name
-      event_store.record! id, ModelNamed.new(name: name)
+      event_store.record! id, ModelNamed.new(name: name), version_of(id)
     end
 
     def edit_model_templates! id, question, answer

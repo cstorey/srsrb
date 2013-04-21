@@ -229,10 +229,19 @@ module SRSRB
     # Model operations. 
     describe "#name_model!" do
       it "should emit an even stating the model has been named" do
-        event_store.should_receive(:record!).with(model_id, ModelNamed.new(name: model_name))
+        event_store.should_receive(:record!).with(model_id, ModelNamed.new(name: model_name), nil)
         decks.name_model! model_id, model_name
       end
       it "should disallow duplicate names"
+
+      context "with previous events" do
+        let (:previous_events) { [[AnEvent.new, 42]] }
+
+        it "should use the correct version" do
+          event_store.should_receive(:record!).with(model_id, ModelNamed.new(name: model_name), 42)
+          decks.name_model! model_id, model_name
+        end
+      end
     end
 
     describe "#edit_model_templates!" do

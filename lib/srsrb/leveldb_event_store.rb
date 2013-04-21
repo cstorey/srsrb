@@ -81,7 +81,6 @@ module SRSRB
       db.each(from: EVENT_PREFIX, to: last_event) do |seqid, blob|
         id, event = undump(blob)
         version = decode_id(seqid)
-        pp seqid => [id.to_guid, event, version]
         yield id, event, version
       end
     end

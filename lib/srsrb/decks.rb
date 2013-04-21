@@ -132,6 +132,7 @@ module SRSRB
       event_store.record! id, ModelFieldAdded.new(field: name), version_of(id)
     end
 
+    private
     def events_for id
       event_store.to_enum(:events_for_stream, id).to_a
     end

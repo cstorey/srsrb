@@ -31,14 +31,12 @@ module SRSRB
 
       if stream_version
         stream_version = Integer(stream_version, 16)
-      else
-        stream_version = current_version
       end
 
-      stream_version += 1
+      expected_version = nil if expected_version.nil?
 
-      raise WrongEventVersionError if expected_version != UNDEFINED && expected_version != current_version
-      $stderr.puts "No version passed to #{self.class.name}#record! at #{caller[0]}" if expected_version == UNDEFINED
+      raise WrongEventVersionError, "expecting: #{expected_version}; stream version: #{stream_version}" if expected_version != UNDEFINED && expected_version != stream_version
+      #$stderr.puts "No version passed to #{self.class.name}#record! at #{caller[0]}" if expected_version == UNDEFINED
 
       event_id = current_version.succ
       key = encode_id(event_id)
@@ -46,7 +44,7 @@ module SRSRB
 
       db.batch do |batch|
         batch.put(key, val)
-        batch.put(stream_version_key(id), "%016x" % [stream_version])
+        batch.put(stream_version_key(id), "%016x" % [event_id])
         batch.put(GLOBAL_VERSION_KEY, key)
       end
 

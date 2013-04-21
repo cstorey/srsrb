@@ -8,12 +8,12 @@ module SRSRB
     describe "#record!" do
       it "should increase the number of recorded events by one" do
         expect do
-          event_store.record! a_stream, some_event
+          event_store.record! a_stream, some_event, nil
         end.to change { event_store.count }.from(0).to(1)
       end
 
       it "should return an integer version" do
-        version = event_store.record! a_stream, some_event
+        version = event_store.record! a_stream, some_event, nil
         expect(version).to be_kind_of Integer
       end
 
@@ -77,7 +77,7 @@ module SRSRB
 
         listener.should_receive(:handle_event).with(a_stream, some_event, anything)
 
-        event_store.record! a_stream, some_event
+        event_store.record! a_stream, some_event, nil
       end
 
       it "should notify the handler of the version for each event" do
@@ -88,7 +88,7 @@ module SRSRB
           emitted_version = v
         end
 
-        recorded_version = event_store.record! a_stream, some_event
+        recorded_version = event_store.record! a_stream, some_event, nil
         expect(emitted_version).to be == recorded_version
       end
 
@@ -97,14 +97,14 @@ module SRSRB
 
     describe "#events_for_stream" do
       it "should yield all of the current events for a given stream" do
-        version = event_store.record! a_stream, some_event
+        version = event_store.record! a_stream, some_event, nil
         expect do |p|
           event_store.events_for_stream a_stream, &p
         end.to yield_successive_args([some_event, version])
       end
 
       it "should yield only the current events for a given stream" do
-        event_store.record! LexicalUUID.new, some_event
+        event_store.record! LexicalUUID.new, some_event, nil
         expect do |p|
           event_store.events_for_stream a_stream, &p
         end.to yield_successive_args()

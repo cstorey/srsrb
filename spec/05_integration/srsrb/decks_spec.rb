@@ -18,7 +18,7 @@ module SRSRB
       end
 
       it "should record the score, and card in the event store" do
-        event_store.should_receive(:record!).with(card_id, an_instance_of(CardReviewed))
+        event_store.should_receive(:record!).with(card_id, an_instance_of(CardReviewed), nil)
         decks.score_card! card_id, :good
       end
 
@@ -44,9 +44,15 @@ module SRSRB
 
       def next_due_dates_of scores
         next_due_dates = []
+        events = previous_reviews
         event_store.stub(:record!) do |id, event|
+          events << event
           next_due_dates << event.next_due_date
         end
+
+        event_store.stub(:events_for_stream) { |&p|
+          events.each_with_index(&p)
+        }
 
         scores.each { |score| decks.score_card! card_id, score }
 
@@ -73,9 +79,15 @@ module SRSRB
 
       def intervals_of scores
         intervals = []
+        events = previous_reviews
         event_store.stub(:record!) do |id, event|
+          events << event
           intervals << event.interval
         end
+
+        event_store.stub(:events_for_stream) { |&p|
+          events.each_with_index(&p)
+        }
 
         scores.each { |score| decks.score_card! card_id, score }
 
@@ -106,12 +118,26 @@ module SRSRB
         it "should carry on where it left off" do
           expect(next_due_dates_of [:good] * 4).to be == [20, 40, 80, 160]
         end
+
+        it "should record changes with the previous stream version" do
+          last_stream_id = previous_reviews.size-1
+          event_store.should_receive(:record!).with(card_id, an_instance_of(CardReviewed), last_stream_id)
+          decks.score_card! card_id, :good
+        end
       end
+
       context "with some other things that happened to this card" do
-        let (:previous_reviews) { [CardEdited.new()] }
+        let (:previous_reviews) { [CardEdited.new()] * 4 }
         it "should just ignore them" do
           expect(next_due_dates_of [:good] * 4).to be == [1, 3, 7, 15]
         end
+
+        it "should record the changed version" do
+          last_stream_id = previous_reviews.size-1
+          event_store.should_receive(:record!).with(card_id, an_instance_of(CardReviewed), last_stream_id)
+          decks.score_card! card_id, :good
+        end
+
       end
     end
   end

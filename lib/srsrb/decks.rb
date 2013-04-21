@@ -18,7 +18,6 @@ module SRSRB
   class ReviewScoring
     def initialize event_store
       self.event_store = event_store
-      self.cards = Atomic.new Hamster.hash
     end
 
     def score_card! card_id, score
@@ -28,16 +27,13 @@ module SRSRB
       # checks in the event store will catch any badness.
 
       card = get_card card_id
-      card = card.score_as(score)
-      update_card(card_id) { |_| card }
+      card.score_as(score)
     end
 
     private
 
     def get_card card_id
-      cards.get.fetch(card_id) {
-        load_card_from_events card_id
-      }
+      load_card_from_events card_id
     end
 
     def load_card_from_events card_id
@@ -73,12 +69,12 @@ module SRSRB
 
       next_due_date = self.next_due_date + interval
       event = CardReviewed.new score: score, next_due_date: next_due_date, interval: interval
-      version = store.record! id, event
+      version = store.record! id, event, self.version
       self.set_interval(interval).set_next_due_date(next_due_date).set_version(version)
     end
 
     def apply event, new_version
-      return self if not event.kind_of? CardReviewed
+      return self.set_version(new_version) if not event.kind_of? CardReviewed
       self.set_interval(event.interval).set_next_due_date(event.next_due_date).set_version(new_version)
     end
 

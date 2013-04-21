@@ -105,21 +105,28 @@ module SRSRB
     end
 
     def set_model_for_card! card_id, model_id
-      event_store.record! card_id, CardModelChanged.new(model_id: model_id), version_of(card_id)
+      card = get_card(card_id)
+      card.set_model! model_id
+
       model_ids_by_card.update { |idx| idx.put(card_id, model_id) }
     end
 
     private
 
-    class Card < Hamsterdam::Struct.define :version, :model_id
+    class Card < Hamsterdam::Struct.define :id, :version, :model_id, :event_store
+      def set_model! model_id
+        event_store.record! id, CardModelChanged.new(model_id: model_id), version
+      end
+
       def apply event, version
         set_version version
       end
     end
 
     def get_card id
-      event_store.to_enum(:events_for_stream, id).inject(Card.new) { |card, (event, version)|
-        card.apply(event, version)
+      event_store.to_enum(:events_for_stream, id).
+        inject(Card.new id: id, event_store: event_store) { |card, (event, version)|
+          card.apply(event, version)
       }
     end
 

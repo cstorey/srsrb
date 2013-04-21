@@ -25,8 +25,7 @@ module SRSRB
       current_version + 1
     end
 
-    UNDEFINED = Object.new
-    def record! id, event, expected_version=UNDEFINED
+    def record! id, event, expected_version
       stream_version = db.get(stream_version_key(id), nil)
 
       if stream_version
@@ -35,8 +34,7 @@ module SRSRB
 
       expected_version = nil if expected_version.nil?
 
-      raise WrongEventVersionError, "expecting: #{expected_version}; stream version: #{stream_version}" if expected_version != UNDEFINED && expected_version != stream_version
-      #$stderr.puts "No version passed to #{self.class.name}#record! at #{caller[0]}" if expected_version == UNDEFINED
+      raise WrongEventVersionError, "expecting: #{expected_version.inspect}; stream version: #{stream_version.inspect}" if expected_version != stream_version
 
       event_id = current_version.succ
       key = encode_id(event_id)

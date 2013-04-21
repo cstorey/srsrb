@@ -7,18 +7,15 @@ require 'atomic'
 module SRSRB
 
   class EventStore
-    UNSPECIFIED = Object.new
     def initialize
       self.events = Hamster.vector
       self.subscribers = Hamster.set
       self.versions = Atomic.new Hamster.hash
     end
 
-    def record! stream_id, event, expected_version=UNSPECIFIED
+    def record! stream_id, event, expected_version
       stream_version = versions.get.fetch(stream_id, nil)
-      raise WrongEventVersionError, "expected: #{expected_version}, reality: #{stream_version}" if expected_version != UNSPECIFIED && stream_version != expected_version
-
-      $stderr.puts "No version passed to #{self.class.name}#record! at #{caller[0]}" if expected_version == UNSPECIFIED
+      raise WrongEventVersionError, "expected: #{expected_version}, reality: #{stream_version}" if stream_version != expected_version
 
       stream_version = current_version.succ
 

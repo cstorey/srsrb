@@ -129,7 +129,10 @@ module SRSRB
     end
 
     def add_model_field! id, name
-      event_store.record! id, ModelFieldAdded.new(field: name)
+      events = event_store.to_enum(:events_for_stream, id).to_a;
+      pp events: events
+      version = events.map(&:last).last
+      event_store.record! id, ModelFieldAdded.new(field: name), version
     end
 
     attr_accessor :event_store

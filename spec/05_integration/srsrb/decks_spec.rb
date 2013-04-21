@@ -217,6 +217,12 @@ module SRSRB
     describe "#add_model_field!" do
       let (:card_fields) { { "stuff" => "things", "gubbins" => "cheese" } }
       let (:name) { 'stuff' }
+      let (:previous_events) { [] }
+      before do
+        previous_events.inject(event_store.stub(:events_for_stream).with(model_id)) do |stub, (event, vers)|
+          stub.and_yield(event, vers)
+        end
+      end
 
       before do
         a_model.stub(:add_field).with(name).and_return(:modified_model)
@@ -224,14 +230,17 @@ module SRSRB
 
       it "should emit an event stating the templates have changed" do
         event_store.should_receive(:record!).
-          with model_id, ModelFieldAdded.new(field: name)
+          with model_id, ModelFieldAdded.new(field: name), nil
         decks.add_model_field! model_id, name
       end
 
-      it "should emit an event stating the templates have changed" do
-        event_store.should_receive(:record!).
-          with model_id, ModelFieldAdded.new(field: name)
-        decks.add_model_field! model_id, name
+      context "with previous events" do
+        let (:previous_events) { [[AnEvent.new, 42]] }
+        it "should use the current card version" do
+          event_store.should_receive(:record!).
+            with model_id, ModelFieldAdded.new(field: name), 42
+          decks.add_model_field! model_id, name
+        end
       end
     end
   end

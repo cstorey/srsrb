@@ -20,8 +20,9 @@ module SRSRB
         let (:n) { 2**14 + 5 }
         let (:id) { LexicalUUID.new }
         before :each do
+          version = nil
           n.times do
-            event_store.record! id, id, nil
+            version = event_store.record! id, id, version
           end
         end
         it "#count returns the correct number of events" do

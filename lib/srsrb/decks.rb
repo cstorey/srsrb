@@ -101,7 +101,7 @@ module SRSRB
       missing_fields = (expected_fields - data.keys)
       raise FieldMissingException if not missing_fields.empty?
 
-      event_store.record! id, CardEdited.new(card_fields: data)
+      event_store.record! id, CardEdited.new(card_fields: data), version_of(id)
     end
 
     def set_model_for_card! card_id, model_id

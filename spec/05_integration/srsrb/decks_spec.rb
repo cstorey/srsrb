@@ -187,7 +187,7 @@ module SRSRB
       end
 
       it "should record the score, and card in the event store" do
-        event_store.should_receive(:record!).with(card_id, CardEdited.new(card_fields: card_fields))
+        event_store.should_receive(:record!).with(card_id, CardEdited.new(card_fields: card_fields), nil)
         decks.add_or_edit_card! card_id, card_fields
       end
 
@@ -196,6 +196,15 @@ module SRSRB
         expect do
           decks.add_or_edit_card! card_id, card_fields
         end.to raise_error(FieldMissingException)
+      end
+
+      context "with previous events" do
+        let (:previous_events) { [[AnEvent.new, 42]] }
+
+        it "should use the most recent version" do
+          event_store.should_receive(:record!).with(card_id, CardEdited.new(card_fields: card_fields), 42)
+          decks.add_or_edit_card! card_id, card_fields
+        end
       end
     end
   end

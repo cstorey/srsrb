@@ -3,7 +3,6 @@ require 'leveldb'
 
 module SRSRB
   class LevelDbEventStore
-    EVENT_PREFIX = 'event/'
     GLOBAL_VERSION_KEY = 'global_sequence'
     STREAM_VERSION_KEY_FMT = 'stream/%s/version'
 
@@ -15,39 +14,38 @@ module SRSRB
     def current_version
       seqid, _ = db.get(GLOBAL_VERSION_KEY, nil)
       if seqid
-        decode_id(seqid)
+        LevelDbEventKey.from_bytes(seqid)
       else
-        -1
+        LevelDbEventKey.none
       end
     end
 
     def count
-      current_version + 1
+      current_version.seqid + 1
     end
 
     def record! id, event, expected_version
       stream_version = db.get(stream_version_key(id), nil)
 
       if stream_version
-        stream_version = Integer(stream_version, 16)
+        stream_version = LevelDbEventKey.from_bytes(stream_version).seqid
       end
 
       expected_version = nil if expected_version.nil?
 
       raise WrongEventVersionError, "expecting: #{expected_version.inspect}; stream version: #{stream_version.inspect}" if expected_version != stream_version
 
-      event_id = current_version.succ
-      key = encode_id(event_id)
+      key = current_version.succ
       val = dump(id, event)
 
       db.batch do |batch|
-        batch.put(key, val)
-        batch.put(stream_version_key(id), "%016x" % [event_id])
-        batch.put(GLOBAL_VERSION_KEY, key)
+        batch.put(key.as_bytes, val)
+        batch.put(stream_version_key(id), key.as_bytes)
+        batch.put(GLOBAL_VERSION_KEY, key.as_bytes)
       end
 
-      notify_recipients id, event, event_id
-      event_id
+      notify_recipients id, event, key.seqid
+      key.seqid
     end
 
     def subscribe recipient
@@ -78,9 +76,9 @@ module SRSRB
     def each_event
       last_event = db.get(GLOBAL_VERSION_KEY)
       return if not last_event
-      db.each(from: EVENT_PREFIX, to: last_event) do |seqid, blob|
+      db.each(from: LevelDbEventKey::EVENT_PREFIX, to: last_event) do |seqid, blob|
         id, event = undump(blob)
-        version = decode_id(seqid)
+        version = LevelDbEventKey.decode_id(seqid)
         yield id, event, version
       end
     end
@@ -93,21 +91,43 @@ module SRSRB
       Marshal.load(StringIO.new(blob))
     end
 
-    def nextid
-      encode_id(count)
-    end
-
-    def encode_id(n)
-      "%s%016x" % [EVENT_PREFIX, n]
-    end
-
-    def decode_id seqid
-      fail "Not an event key!: #{seqid.inspect}" unless seqid.start_with? 'event/'
-      Integer(seqid[EVENT_PREFIX.size..-1], 16)
-    end
     def stream_version_key id
       STREAM_VERSION_KEY_FMT % id.to_guid
     end
     attr_accessor :db, :recipients
+  end
+
+  class LevelDbEventKey
+    EVENT_PREFIX = 'event/'
+
+    def initialize seqid
+      self.seqid = seqid
+    end
+
+    def as_bytes
+      "%s%016x" % [EVENT_PREFIX, seqid]
+    end
+
+    def succ
+      self.class.new(seqid.succ)
+    end
+
+    def self.decode_id bytes
+      self.from_bytes(bytes).seqid
+    end
+
+    def self.from_bytes bytes
+      fail "Not an event key!: #{bytes.inspect}" unless bytes.start_with? EVENT_PREFIX
+      self.new(Integer(bytes[EVENT_PREFIX.size..-1], 16))
+    end
+
+    def self.none
+      self.new -1
+    end
+
+    attr_reader :seqid
+
+    private
+    attr_writer :seqid
   end
 end

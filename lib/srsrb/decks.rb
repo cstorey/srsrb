@@ -91,12 +91,13 @@ module SRSRB
   class CardEditing
     def initialize event_store, models
       self.event_store = event_store
-      self.model_ids_by_card = Atomic.new Hamster.hash
       self.models = models
     end
 
     def add_or_edit_card! id, data
-      model_id = model_ids_by_card.get.fetch(id) { fail "Missing model for card #{id.to_guid} " }
+      card = get_card(id)
+      model_id = card.model_id
+
       expected_fields = models.fetch(model_id).fields
       missing_fields = (expected_fields - data.keys)
       raise FieldMissingException if not missing_fields.empty?
@@ -107,8 +108,6 @@ module SRSRB
     def set_model_for_card! card_id, model_id
       card = get_card(card_id)
       card.set_model! model_id
-
-      model_ids_by_card.update { |idx| idx.put(card_id, model_id) }
     end
 
     private
@@ -116,10 +115,16 @@ module SRSRB
     class Card < Hamsterdam::Struct.define :id, :version, :model_id, :event_store
       def set_model! model_id
         event_store.record! id, CardModelChanged.new(model_id: model_id), version
+        set_model_id model_id
       end
 
       def apply event, version
-        set_version version
+        case event
+        when CardModelChanged
+          set_version(version).set_model_id(event.model_id)
+        else
+          set_version(version)
+        end
       end
     end
 
@@ -133,7 +138,7 @@ module SRSRB
     def version_of id
       get_card(id).version
     end
-    attr_accessor :event_store, :model_ids_by_card, :models
+    attr_accessor :event_store, :models
   end
 
   class ModelEditing

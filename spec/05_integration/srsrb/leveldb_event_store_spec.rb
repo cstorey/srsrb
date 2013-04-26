@@ -17,6 +17,7 @@ module SRSRB
 
       # BER encoding is lexicographically sorted upto 2**14; but not after that.
       context "with large numbers of events when nevents > (2**14)" do
+        before { pending "Slow tests" }
         let (:n) { 2**14 + 5 }
         let (:id) { LexicalUUID.new }
         before :each do

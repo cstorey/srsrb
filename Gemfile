@@ -15,6 +15,10 @@ gem 'rack-flash3'
 gem 'snappy'
 gem 'leveldb-ruby'
 
+# For Anki imports
+gem 'sqlite3'
+gem 'sequel'
+
 group :production do
     gem 'puma'
 end

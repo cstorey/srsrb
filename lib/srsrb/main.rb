@@ -55,7 +55,7 @@ module SRSRB
     end
 
     def anki_import_parser
-      nil
+      AnkiImportParser.new model_editing, card_editing
     end
 
     def importer_app

@@ -15,11 +15,8 @@ module SRSRB
     end
 
     post '/import/' do
-      if params[:deck_file]
-        parser.accept_upload params[:deck_file].fetch(:tempfile)
-      else
-        redirect request.url
-      end
+      parser.accept_upload params[:deck_file].fetch(:tempfile) if params[:deck_file]
+      redirect request.url
     end
 
     private

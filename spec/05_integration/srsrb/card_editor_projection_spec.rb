@@ -57,11 +57,12 @@ module SRSRB
         end
 
         it "should be included in all_cards" do
-          pp card_ids: deck.all_cards.map(&:id).map(&:to_guid), model: model_id.to_guid, card: id.to_guid
           known_cards = deck.all_cards.map(&:id).to_set
           expect(known_cards).to have(1).items
           expect(known_cards).to include(id)
         end
+
+        it "updates should be reflected in #all_cards"
 
         context "#editable_card_for" do
           it "should record an editable card the given id" do
@@ -91,6 +92,8 @@ module SRSRB
           it "should add the name" do
               expect(deck.card_model(id).name).to be == name
           end
+
+          it "should preserve templates for any existing model"
         end
 
         context "when we send two events" do

@@ -38,27 +38,10 @@ module SRSRB
     def handle_event id, event, _version
       case event
         when CardEdited then handle_card_edited id, event
-        when CardModelChanged then handle_card_model_changed id, event
         when ModelNamed then handle_model_named id, event
         when ModelFieldAdded then handle_model_field_added id, event
         when ModelTemplatesChanged then handle_model_templates_changed id, event
       end
-    end
-
-    def enqueue_card card
-      update_card(card.id) { card }
-    end
-
-    def update_card id, &block
-      cards.update { |oldver|
-        oldver.fetch(id) { Card.new id: id }.
-          into { |old_card| block.call old_card }.
-          into { |new_card| oldver.put(id, new_card) }
-      }
-    end
-
-    def card_for id
-      cards.get[id]
     end
 
     private
@@ -86,27 +69,18 @@ module SRSRB
       }
     end
 
-    def handle_card_model_changed id, event
-      _card_model_id_by_card.update { |idx| idx.put(id, event.model_id) }
-    end
-
     def handle_card_edited id, event
-      model = model_for_card_id id
+      # TODO: Updates the projection of all cards in the deck. Needs
+      # replacing with a table of fact fields by model.
+      cards.update { |oldver|
+          oldver.put(id, Card.new(id: id))
+      }
 
-      question = model.format_question_with(event.card_fields)
-      answer = model.format_answer_with(event.card_fields)
-
-      update_card(id) { |card| card.set_question(question).set_answer(answer) }
       _editable_cards.update { |oldver| oldver.put(id, EditableCard.new(id: id, fields: event.card_fields)) }
     end
 
     def handle_model_named id, event
       update_model(id) { |model| model ||= CardFormat.new(id: id); model.set_name(event.name) }
-    end
-
-    def model_for_card_id id
-      model_id = _card_model_id_by_card.get.fetch(id)
-      _card_models.get.find { |m| true }.last
     end
 
     attr_accessor :queue, :cards, :event_store, :_card_models, :_card_model_ids, :_card_model_id_by_card, :_editable_cards

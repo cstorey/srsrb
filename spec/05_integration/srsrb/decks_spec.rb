@@ -156,12 +156,29 @@ module SRSRB
       end
     end
 
-    describe "#set_model_for_card!" do
+    describe "#add_or_edit_card!" do
       let (:card_id) { LexicalUUID.new }
-      let (:new_model_id) { LexicalUUID.new }
-      it "should record the change in the event store" do
-        event_store.should_receive(:record!).with(card_id, CardModelChanged.new(model_id: new_model_id), nil)
-        decks.set_model_for_card! card_id, new_model_id
+      let (:model_id) { LexicalUUID.new }
+      let (:card_fields) { { "stuff" => "things", "gubbins" => "cheese" } }
+
+      before do
+        event_store.as_null_object
+        models.stub(:fetch).with(model_id).and_return(a_model)
+      end
+
+      it "should record the score, and card in the event store" do
+        event_store.should_receive(:record!).
+          with(card_id, 
+               CardEdited.new(card_fields: card_fields, model_id: model_id), 
+               nil)
+        decks.add_or_edit_card! card_id, model_id, card_fields
+      end
+
+      it "should fail if the card is missing a field" do
+        card_fields.delete('stuff')
+        expect do
+          decks.add_or_edit_card! card_id, model_id, card_fields
+        end.to raise_error(FieldMissingException)
       end
 
       context "with previous events" do
@@ -169,44 +186,8 @@ module SRSRB
 
         it "should use the most recent version" do
           event_store.should_receive(:record!).
-            with(card_id, CardModelChanged.new(model_id: new_model_id), 42)
-          decks.set_model_for_card! card_id, new_model_id
-        end
-      end
-    end
-
-    describe "#add_or_edit_card!" do
-      let (:card_id) { LexicalUUID.new }
-      let (:model_id) { LexicalUUID.new }
-      let (:card_fields) { { "stuff" => "things", "gubbins" => "cheese" } }
-      let (:version) { 10 }
-      let (:model_changed_event) { [CardModelChanged.new(model_id: model_id), version] }
-      let (:previous_events) { [model_changed_event] }
-
-      before do
-        event_store.as_null_object
-        models.stub(:fetch).with(model_id).and_return(a_model)
-        decks.set_model_for_card! card_id, model_id
-      end
-
-      it "should record the score, and card in the event store" do
-        event_store.should_receive(:record!).with(card_id, CardEdited.new(card_fields: card_fields), version)
-        decks.add_or_edit_card! card_id, card_fields
-      end
-
-      it "should fail if the card is missing a field" do
-        card_fields.delete('stuff')
-        expect do
-          decks.add_or_edit_card! card_id, card_fields
-        end.to raise_error(FieldMissingException)
-      end
-
-      context "with previous events" do
-        let (:previous_events) { [model_changed_event, [AnEvent.new, 42]] }
-
-        it "should use the most recent version" do
-          event_store.should_receive(:record!).with(card_id, CardEdited.new(card_fields: card_fields), 42)
-          decks.add_or_edit_card! card_id, card_fields
+            with(card_id, CardEdited.new(card_fields: card_fields, model_id: model_id), 42)
+          decks.add_or_edit_card! card_id, model_id, card_fields
         end
       end
     end

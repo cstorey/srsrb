@@ -72,8 +72,7 @@ module SRSRB
     def inject_a_card! model_id, item
       id = LexicalUUID.new(item.fetch("id"))
       fields = item.fetch("data")
-      card_editing.set_model_for_card! id, model_id
-      card_editing.add_or_edit_card! id, fields
+      card_editing.add_or_edit_card! id, model_id, fields
     end
 
     private

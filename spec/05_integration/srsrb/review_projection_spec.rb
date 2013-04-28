@@ -92,8 +92,7 @@ module SRSRB
           event_store.record! model_id,
             ModelTemplatesChanged.new(question: '{{ word }}', answer: '{{ meaning }} {{ sound }}')
 
-          event_store.record! id, CardModelChanged.new(model_id: model_id)
-          event_store.record! id, CardEdited.new(card_fields: card_fields)
+          event_store.record! id, CardEdited.new(card_fields: card_fields, model_id: model_id)
         end
 
         it "should add it to the current stack of cards" do
@@ -113,6 +112,9 @@ module SRSRB
         end
         it "should set the card id" do
           expect(deck.card_for(id).id).to be == id
+        end
+        context "when there are multiple models" do
+          it "should render the card with the correct model"
         end
       end
 

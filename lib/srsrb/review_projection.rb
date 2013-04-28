@@ -34,7 +34,6 @@ module SRSRB
       case event
         when CardReviewed then handle_card_reviewed id, event
         when CardEdited then handle_card_edited id, event
-        when CardModelChanged then handle_card_model_changed id, event
         when ModelTemplatesChanged then handle_model_templates_changed id, event
       end
     end
@@ -48,7 +47,7 @@ module SRSRB
     end
 
     def handle_card_edited id, event
-      model = model_for_card_id id
+      model = model_for event.model_id
 
       question = model.format_question_with(event.card_fields)
       answer = model.format_answer_with(event.card_fields)
@@ -84,8 +83,7 @@ module SRSRB
       }
     end
 
-    def model_for_card_id id
-      model_id = _card_model_id_by_card.get.fetch(id)
+    def model_for id
       _card_models.get.find { |m| true }.last
     end
 

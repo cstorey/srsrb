@@ -94,37 +94,22 @@ module SRSRB
       self.models = models
     end
 
-    def add_or_edit_card! id, data
+    def add_or_edit_card! id, model_id, data
       card = get_card(id)
-      model_id = card.model_id
-
       expected_fields = models.fetch(model_id).fields
       missing_fields = (expected_fields - data.keys)
       raise FieldMissingException if not missing_fields.empty?
 
-      event_store.record! id, CardEdited.new(card_fields: data), version_of(id)
-    end
-
-    def set_model_for_card! card_id, model_id
-      card = get_card(card_id)
-      card.set_model! model_id
+      event_store.record! id, 
+        CardEdited.new(card_fields: data, model_id: model_id), 
+       card.version
     end
 
     private
 
     class Card < Hamsterdam::Struct.define :id, :version, :model_id, :event_store
-      def set_model! model_id
-        event_store.record! id, CardModelChanged.new(model_id: model_id), version
-        set_model_id model_id
-      end
-
       def apply event, version
-        case event
-        when CardModelChanged
-          set_version(version).set_model_id(event.model_id)
-        else
-          set_version(version)
-        end
+        set_version(version)
       end
     end
 

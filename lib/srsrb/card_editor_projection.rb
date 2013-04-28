@@ -76,7 +76,10 @@ module SRSRB
           oldver.put(id, Card.new(id: id))
       }
 
-      _editable_cards.update { |oldver| oldver.put(id, EditableCard.new(id: id, fields: event.card_fields)) }
+      _editable_cards.update { |oldver| 
+        oldver.put(id, EditableCard.new(id: id, fields: event.card_fields, 
+                                        model_id: event.model_id)) 
+      }
     end
 
     def handle_model_named id, event
@@ -86,7 +89,7 @@ module SRSRB
     attr_accessor :queue, :cards, :event_store, :_card_models, :_card_model_ids, :_card_model_id_by_card, :_editable_cards
   end
  
-  class EditableCard < Hamsterdam::Struct.define(:id, :fields)
+  class EditableCard < Hamsterdam::Struct.define(:id, :fields, :model_id)
   end
 
   class CardFormat < Hamsterdam::Struct.define(:id, :name, :fields, :question_template, :answer_template)

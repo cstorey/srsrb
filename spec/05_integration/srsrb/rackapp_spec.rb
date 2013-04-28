@@ -90,8 +90,7 @@ module SRSRB
 
       it "should create one card for each card item" do
         card_data.each do |d|
-          card_editing.should_receive(:set_model_for_card!).with(d.fetch(:id), model_id)
-          card_editing.should_receive(:add_or_edit_card!).with(d.fetch(:id), d.fetch(:data))
+          card_editing.should_receive(:add_or_edit_card!).with(d.fetch(:id), model_id, d.fetch(:data))
         end
 
         card_json = card_data.map { |r|

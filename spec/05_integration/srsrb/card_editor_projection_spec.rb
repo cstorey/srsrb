@@ -52,8 +52,7 @@ module SRSRB
           event_store.record! model_id,
             ModelTemplatesChanged.new(question: '{{ word }}', answer: '{{ meaning }} {{ sound }}')
 
-          event_store.record! id, CardModelChanged.new(model_id: model_id)
-          event_store.record! id, CardEdited.new(card_fields: card_fields)
+          event_store.record! id, CardEdited.new(card_fields: card_fields, model_id: model_id)
         end
 
         it "should be included in all_cards" do
@@ -70,6 +69,10 @@ module SRSRB
           end
           it "should record an editable card the given fields" do
             expect(deck.editable_card_for(id).fields).to be == card_fields
+          end
+
+          it "should record an editable card with the given model" do
+            expect(deck.editable_card_for(id).model_id).to be == model_id
           end
         end
       end

@@ -62,8 +62,7 @@ module SRSRB
       # Hack for the system tests
       id = LexicalUUID.new
 
-      decks.set_model_for_card! id, model_id
-      decks.add_or_edit_card! id, form_fields_for_model_as_dictionary(model)
+      decks.add_or_edit_card! id, model_id, form_fields_for_model_as_dictionary(model)
 
       session[:last_added_card_id] = id
       flash[:success] = "Your card has now been saved"
@@ -92,7 +91,8 @@ module SRSRB
       haml :card_editor, locals: {
         last_card_id: nil,
         card_models: [], # TODO
-        card_fields: card.fields
+        card_fields: card.fields,
+        model_id: card.model_id.to_guid
       }
     end
 
@@ -102,12 +102,13 @@ module SRSRB
 
     def save_card!
       card_id = LexicalUUID.new(params[:card_id])
+      model_id = LexicalUUID.new(params[:model_id])
       card_fields = params.flat_map { |k, v|
         m = /^field-(.*)/.match(k)
         m ? [m[1], v] : []
       }.into { |kvs| Hash[*kvs] }
 
-      decks.add_or_edit_card! card_id, card_fields
+      decks.add_or_edit_card! card_id, model_id, card_fields
       flash[:success] = "Your card has now been saved"
       redirect "/editor/#{card_id.to_guid}", 303
     end

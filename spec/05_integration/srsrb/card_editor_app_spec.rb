@@ -84,13 +84,11 @@ module SRSRB
           page[:meaning] = "the meaning"
           page[:pronounciation] = "how it sounds"
           decks.should_receive(:add_or_edit_card!).
-            with an_instance_of(LexicalUUID), {
+            with an_instance_of(LexicalUUID), default_model_id, {
             "word" => "a word",
             "meaning" => "the meaning",
             "pronounciation" => "how it sounds",
           }
-          decks.should_receive(:set_model_for_card!).with(an_instance_of(LexicalUUID), default_model_id)
-
           page.add_card!
         end
 
@@ -114,8 +112,7 @@ module SRSRB
         page[:question] = "a question"
         page[:answer] = "an answer"
 
-        decks.should_receive(:set_model_for_card!).with(an_instance_of(LexicalUUID), default_model_id)
-        decks.should_receive(:add_or_edit_card!).with(an_instance_of(LexicalUUID), { 'question' => question, 'answer' => answer })
+        decks.should_receive(:add_or_edit_card!).with(an_instance_of(LexicalUUID), default_model_id, { 'question' => question, 'answer' => answer })
 
         page.add_card!
       end
@@ -168,7 +165,8 @@ module SRSRB
 
     describe 'GET /editor/:card_id' do
       let (:card_fields) { { 'word' => 'foo', 'meaning' => 'metasyntax', 'reading' => 'fffuuu' } }
-      let (:card_data) { OpenStruct.new( id: LexicalUUID.new, fields: card_fields) }
+      let (:model_id) { LexicalUUID.new }
+      let (:card_data) { OpenStruct.new( id: LexicalUUID.new, fields: card_fields, model_id: model_id) }
 
       before do
         deck_view.stub(:editable_card_for).with(card_data.id).and_return(card_data)
@@ -189,7 +187,7 @@ module SRSRB
       it "should save the updated data" do
         page = browser.get_card_edit_page card_data.id.to_guid
 
-        decks.should_receive(:add_or_edit_card!).with card_data.id, card_fields
+        decks.should_receive(:add_or_edit_card!).with card_data.id, model_id, card_fields
 
         page.save!
       end

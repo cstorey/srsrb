@@ -4,6 +4,7 @@ require 'srsrb/decks'
 require 'srsrb/leveldb_event_store'
 require 'srsrb/object_patch'
 require 'srsrb/rackapp'
+require 'srsrb/importer_app'
 
 require 'lexical_uuid'
 
@@ -52,13 +53,22 @@ module SRSRB
     def model_editor_app
       ModelEditorApp.new :model_editor_stub, model_editing
     end
+
+    def anki_import_parser
+      nil
+    end
+
+    def importer_app
+      ImporterApp.new anki_import_parser
+    end
+
     def system_test_hack_api
       SystemTestHackApi.new(nil, review_projection, card_editing, model_editing)
     end
 
     def app
       Rack::Cascade.new(
-        [reviews_app, card_editor_app, model_editor_app, system_test_hack_api]
+        [reviews_app, card_editor_app, model_editor_app, importer_app, system_test_hack_api]
       ).into { |app|
         Rack::Session::Pool.new app, :key => 'rack.session',
                            #:domain => 'foo.com',

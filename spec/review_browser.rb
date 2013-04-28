@@ -37,6 +37,8 @@ module SRSRB
         CardEditorListPage.new(browser, self)
       when 'card-model-missing-error-page'
         CardModelMissingErrorPage.new(browser, self)
+      when 'anki-importer-page'
+        AnkiImporterPage.new(browser, self)
       else
         fail "No page id recognised: #{id}"
       end
@@ -63,6 +65,11 @@ module SRSRB
 
     def get_card_edit_page card_id
       browser.visit "/editor/#{card_id}"
+      parse
+    end
+
+    def get_import_page
+      browser.visit "/import/"
       parse
     end
 
@@ -208,5 +215,11 @@ module SRSRB
     end
   end
   class CardModelMissingErrorPage < Page
+  end
+  class AnkiImporterPage < Page
+    def upload pathname
+      browser.attach_file('deck_file', pathname)
+      browser.click_button('Import')
+    end
   end
 end

@@ -1,4 +1,5 @@
-require 'srsrb/deck_view'
+require 'srsrb/review_projection'
+require 'srsrb/card_editor_projection'
 require 'srsrb/decks'
 require 'srsrb/leveldb_event_store'
 require 'srsrb/object_patch'
@@ -31,22 +32,28 @@ module SRSRB
     def card_editing
       @card_editing ||= CardEditing.new event_store, models
     end
-    def deck
-      @deck ||= DeckViewModel.new event_store
+    def review_projection
+      @review_projection ||= ReviewProjection.new event_store
+    end
+
+    def card_editor_projection
+      @card_editor_projection ||= CardEditorProjection.new event_store
     end
 
     # We really want layered mixins for this.
     def reviews_app
-      ReviewsApp.new deck, deck_reviews
+      ReviewsApp.new review_projection, deck_reviews
     end
+
     def card_editor_app
-      CardEditorApp.new deck, card_editing
+      CardEditorApp.new card_editor_projection, card_editing
     end
+
     def model_editor_app
-      ModelEditorApp.new deck, model_editing
+      ModelEditorApp.new :model_editor_stub, model_editing
     end
     def system_test_hack_api
-      SystemTestHackApi.new(nil, deck, card_editing, model_editing)
+      SystemTestHackApi.new(nil, review_projection, card_editing, model_editing)
     end
 
     def app
@@ -63,7 +70,8 @@ module SRSRB
 
     def assemble
       at_exit { shutdown }
-      deck.start!
+      review_projection.start!
+      card_editor_projection.start!
       models.start!
       app
     end

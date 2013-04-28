@@ -189,7 +189,7 @@ describe :SkeletonBehavior do
         importer = browser.get_import_page
         importer.upload hangul_anki
         card_list = browser.list_cards
-        expect(card_list).to have(37).items
+        expect(card_list).to have(37).cards
         card = browser.card_with_question '아'
         expect(card).to have(3).fields
         expect(card['Hangul']).to be == '아'

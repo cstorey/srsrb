@@ -8,7 +8,6 @@ module SRSRB
   class CardEditorProjection
     def initialize event_store
       self.event_store = event_store
-      self.cards = Atomic.new Hamster.hash
       self._card_models = Atomic.new Hamster.hash
       self._card_model_ids = Atomic.new Hamster.vector
       self._card_model_id_by_card = Atomic.new Hamster.hash
@@ -66,12 +65,6 @@ module SRSRB
     end
 
     def handle_card_edited id, event
-      # TODO: Updates the projection of all cards in the deck. Needs
-      # replacing with a table of fact fields by model.
-      cards.update { |oldver|
-          oldver.put(id, Card.new(id: id))
-      }
-
       _editable_cards.update { |oldver|
         oldver.put(id, EditableCard.new(id: id, fields: event.card_fields,
                                         model_id: event.model_id))
@@ -82,7 +75,7 @@ module SRSRB
       update_model(id) { |model| model ||= CardFormat.new(id: id); model.set_name(event.name) }
     end
 
-    attr_accessor :queue, :cards, :event_store, :_card_models, :_card_model_ids, :_card_model_id_by_card, :_editable_cards
+    attr_accessor :queue, :event_store, :_card_models, :_card_model_ids, :_card_model_id_by_card, :_editable_cards
   end
  
   class EditableCard < Hamsterdam::Struct.define(:id, :fields, :model_id)

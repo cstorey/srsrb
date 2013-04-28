@@ -116,7 +116,17 @@ module SRSRB
         end
       end
 
-
+      context "when receiving ModelTemplatesChanged events" do
+        let (:id) { LexicalUUID.new }
+        let (:model_id) { LexicalUUID.new }
+        let (:card_fields) { { "word" => "fish", "meaning" => "wet thing", "sound" => "ffish" } }
+        before do
+          card_fields.each do |field, _|
+            event_store.record! model_id, ModelFieldAdded.new(field: field)
+          end
+        end
+        it "should re-render cards with the given card model with the new template"
+      end
     end
   end
 

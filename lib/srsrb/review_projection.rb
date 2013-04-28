@@ -1,5 +1,4 @@
 require 'hamsterdam'
-require 'hamster/queue'
 require 'hamster/hash'
 require 'hamster/vector'
 require 'atomic'
@@ -10,9 +9,7 @@ module SRSRB
       self.event_store = event_store
       self.cards = Atomic.new Hamster.hash
       self._card_models = Atomic.new Hamster.hash
-      self._card_model_ids = Atomic.new Hamster.vector
       self._card_model_id_by_card = Atomic.new Hamster.hash
-      self._editable_cards = Atomic.new(Hamster.hash)
     end
 
     def start!
@@ -57,17 +54,25 @@ module SRSRB
       answer = model.format_answer_with(event.card_fields)
 
       update_card(id) { |card| card.set_question(question).set_answer(answer) }
-      _editable_cards.update { |oldver| oldver.put(id, EditableCard.new(id: id, fields: event.card_fields)) }
     end
 
     def handle_card_model_changed id, event
       _card_model_id_by_card.update { |idx| idx.put(id, event.model_id) }
     end
 
+    def update_model id, &block
+      _card_models.update do |old_cards|
+        old_model = old_cards[id]
+        new_model = block.call old_model
+        old_cards.put id, new_model
+      end
+    end
+
     def handle_model_templates_changed id, event
-      update_model(id) { |model|
-        model ||= CardFormat.new id: id
-        model.set_question_template(event.question).set_answer_template(event.answer)
+      update_model(id) {
+        CardFormat.new(id: id).
+          set_question_template(event.question).
+          set_answer_template(event.answer)
       }
     end
 
@@ -79,29 +84,12 @@ module SRSRB
       }
     end
 
-    def update_model id, &block
-      _card_models.update do |old_cards|
-        old_model = old_cards[id]
-        new_model = block.call old_model
-        old_cards.put id, new_model
-      end
-
-      _card_model_ids.update { |ids| ids.include?(id) ? ids : ids.add(id) }
-    end
-
-    def handle_model_field_added id, event
-      update_model(id) { |old_model|
-        model = old_model || CardFormat.new(id: id)
-        model.set_fields model.fields.add(event.field)
-      }
-    end
-
     def model_for_card_id id
       model_id = _card_model_id_by_card.get.fetch(id)
       _card_models.get.find { |m| true }.last
     end
 
-    attr_accessor :queue, :cards, :event_store, :_card_models, :_card_model_ids, :_card_model_id_by_card, :_editable_cards
+    attr_accessor :cards, :event_store, :_card_models, :_card_model_id_by_card
   end
 
   class Card < Hamsterdam::Struct.define(:id, :question, :answer, :review_count, :due_date)

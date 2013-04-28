@@ -46,7 +46,7 @@ module SRSRB
     end
 
     def card_editor_app
-      CardEditorApp.new card_editor_projection, card_editing
+      CardEditorApp.new card_editor_projection, review_projection, card_editing
     end
 
     def model_editor_app

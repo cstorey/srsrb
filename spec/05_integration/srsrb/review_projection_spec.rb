@@ -57,6 +57,12 @@ module SRSRB
       end
     end
 
+    describe "#all_cards" do
+      it "returns an empty collection by default" do
+        expect(deck.all_cards).to be_empty
+      end
+    end
+
     describe "#start!" do
       before do
         deck.start!
@@ -98,6 +104,14 @@ module SRSRB
         it "should add it to the current stack of cards" do
           expect(deck.card_for(id)).to be_kind_of Card
         end
+
+        it "should be included in all_cards" do
+          known_cards = deck.all_cards.map(&:id).to_set
+          expect(known_cards).to have(1).items
+          expect(known_cards).to include(id)
+        end
+
+        it "updates should be reflected in #all_cards"
 
         it "should preserve the question" do
           card = deck.card_for(id)

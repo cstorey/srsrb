@@ -27,10 +27,6 @@ module SRSRB
       _card_models.get.fetch(id)
     end
 
-    def all_cards
-      cards.get.values
-    end
-
     def editable_card_for id
       _editable_cards.get[id]
     end
@@ -76,9 +72,9 @@ module SRSRB
           oldver.put(id, Card.new(id: id))
       }
 
-      _editable_cards.update { |oldver| 
-        oldver.put(id, EditableCard.new(id: id, fields: event.card_fields, 
-                                        model_id: event.model_id)) 
+      _editable_cards.update { |oldver|
+        oldver.put(id, EditableCard.new(id: id, fields: event.card_fields,
+                                        model_id: event.model_id))
       }
     end
 

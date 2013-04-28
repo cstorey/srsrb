@@ -3,9 +3,10 @@ require 'review_browser'
 
 module SRSRB
   describe CardEditorApp do
-    let (:deck_view) { mock(:deck_view_model) }
+    let (:card_editor_projection) { mock(:card_editor_projection) }
+    let (:reviews_projection) { mock(:reviews_projection) }
     let (:decks) { mock(:decks) }
-    let (:plain_app) { CardEditorApp.new deck_view, decks }
+    let (:plain_app) { CardEditorApp.new card_editor_projection, reviews_projection, decks }
     let (:app) { plain_app.into { |app| Rack::Session::Pool.new app } } # Rack::CommonLogger.new plain_app, $stderr }
     let (:browser) { ReviewBrowser.new app }
 
@@ -36,9 +37,9 @@ module SRSRB
       let (:default_model_id) { card_models.first.id }
 
       before do
-        deck_view.stub(:card_models).and_return(card_models.map(&:id))
+        card_editor_projection.stub(:card_models).and_return(card_models.map(&:id))
         card_models.each do |model|
-          deck_view.stub(:card_model).with(model.id).and_return(model)
+          card_editor_projection.stub(:card_model).with(model.id).and_return(model)
         end
       end
 
@@ -155,7 +156,7 @@ module SRSRB
         id: LexicalUUID.new, question: 'a question 1', answer: 'the answer')
       }
       it "should list all cards in the deck" do
-        deck_view.stub(:all_cards).and_return([a_card].to_enum)
+        reviews_projection.stub(:all_cards).and_return([a_card].to_enum)
         page = browser.list_cards
         expect(page).to have(1).cards
         the_card = page.cards.first
@@ -169,7 +170,7 @@ module SRSRB
       let (:card_data) { OpenStruct.new( id: LexicalUUID.new, fields: card_fields, model_id: model_id) }
 
       before do
-        deck_view.stub(:editable_card_for).with(card_data.id).and_return(card_data)
+        card_editor_projection.stub(:editable_card_for).with(card_data.id).and_return(card_data)
         decks.stub(:add_or_edit_card!)
       end
 

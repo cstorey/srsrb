@@ -22,12 +22,6 @@ module SRSRB
       end
     end
 
-    describe "#all_cards" do
-      it "returns an empty collection by default" do
-        expect(deck.all_cards).to be_empty
-      end
-    end
-
     describe "#editable_card_for" do
       let (:an_id) { LexicalUUID.new }
       it "returns nil with no cards" do
@@ -54,14 +48,6 @@ module SRSRB
 
           event_store.record! id, CardEdited.new(card_fields: card_fields, model_id: model_id)
         end
-
-        it "should be included in all_cards" do
-          known_cards = deck.all_cards.map(&:id).to_set
-          expect(known_cards).to have(1).items
-          expect(known_cards).to include(id)
-        end
-
-        it "updates should be reflected in #all_cards"
 
         context "#editable_card_for" do
           it "should record an editable card the given id" do

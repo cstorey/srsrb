@@ -7,7 +7,7 @@
             %th Question
             %th Answer
         %tbody
-          - deck_view.all_cards.each do |card|
+          - cards.each do |card|
             %tr.card
               %td
                 %a{href: card.id.to_guid}

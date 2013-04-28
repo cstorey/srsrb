@@ -5,9 +5,10 @@ require 'hamster'
 
 module SRSRB
   class CardEditorApp < Sinatra::Base
-    def initialize deck_view, decks, child=nil
+    def initialize card_editor_projection, reviews_projection, decks, child=nil
       super child
-      self.deck_view = deck_view
+      self.card_editor_projection = card_editor_projection
+      self.reviews_projection = reviews_projection
       self.decks = decks
     end
 
@@ -18,7 +19,7 @@ module SRSRB
     end
 
     def show_card_edit_form_for_default_model
-      model_id = deck_view.card_models.first
+      model_id = card_editor_projection.card_models.first
       if model_id
         redirect "/editor/new/#{model_id.to_guid}", 303
       else
@@ -35,7 +36,7 @@ module SRSRB
       last_card_id = session.delete :last_added_card_id
 
       model_id = LexicalUUID.new(params[:model_id])
-      model = deck_view.card_model(model_id)
+      model = card_editor_projection.card_model(model_id)
 
       haml :card_editor, locals: {
         last_card_id: last_card_id,
@@ -45,8 +46,8 @@ module SRSRB
     end
 
     def card_models_as_dictionary
-      deck_view.card_models.to_enum.
-        flat_map { |model_id| [model_id.to_guid, deck_view.card_model(model_id).name] }.
+      card_editor_projection.card_models.to_enum.
+        flat_map { |model_id| [model_id.to_guid, card_editor_projection.card_model(model_id).name] }.
         into { |kvs| Hash[*kvs] }
     end
 
@@ -56,7 +57,7 @@ module SRSRB
 
     def add_new_card!
       model_id = LexicalUUID.new(params[:model_id])
-      model = deck_view.card_model(model_id)
+      model = card_editor_projection.card_model(model_id)
 
 
       # Hack for the system tests
@@ -78,7 +79,7 @@ module SRSRB
     end
 
     def show_card_list
-      haml :card_editor_list, locals: { deck_view: deck_view }
+      haml :card_editor_list, locals: { cards: reviews_projection.all_cards }
     end
 
     get '/editor/:card_id' do
@@ -87,7 +88,7 @@ module SRSRB
 
     def show_card_edit_form card_id
       card_id = LexicalUUID.new(card_id)
-      card = deck_view.editable_card_for(card_id)
+      card = card_editor_projection.editable_card_for(card_id)
       haml :card_editor, locals: {
         last_card_id: nil,
         card_models: [], # TODO
@@ -114,6 +115,6 @@ module SRSRB
     end
 
     private
-    attr_accessor :deck_view, :decks
+    attr_accessor :card_editor_projection, :reviews_projection, :decks
   end
 end

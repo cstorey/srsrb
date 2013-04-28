@@ -30,6 +30,10 @@ module SRSRB
       update_card(card.id) { card }
     end
 
+    def all_cards
+      cards.get.values
+    end
+
     def handle_event id, event, _version
       case event
         when CardReviewed then handle_card_reviewed id, event

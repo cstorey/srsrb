@@ -183,6 +183,20 @@ describe :SkeletonBehavior do
   end
 
   context "for importing and exporting" do
-    it "should be possible to import an Anki deck preserving history"
+    let (:hangul_anki) {  Pathname.new(__FILE__).dirname.join('../data/Hangul.anki') }
+    it "should be possible to import an Anki deck preserving history" do
+      pending "incomplete" do
+        importer = browser.get_import_page
+        importer.upload hangul_anki
+        card_list = browser.list_cards
+        expect(card_list).to have(37).items
+        card = browser.card_with_question '아'
+        expect(card).to have(3).fields
+        expect(card['Hangul']).to be == '아'
+        expect(card['Romanized']).to be == 'a'
+        # We have this here for completeness; we do not actually however support sound.
+        expect(card['Sound']).to be == '[sound:ko_vx_1.mp3]'
+      end
+    end
   end
 end

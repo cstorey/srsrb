@@ -181,6 +181,13 @@ module SRSRB
         end.to raise_error(FieldMissingException)
       end
 
+      it "should fail if the card is missing a field" do
+        card_fields.delete('stuff')
+        expect do
+          decks.add_or_edit_card! card_id, model_id, card_fields
+        end.to raise_error /stuff/
+      end
+
       context "with previous events" do
         let (:previous_events) { [[AnEvent.new, 42]] }
 

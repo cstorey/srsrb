@@ -14,7 +14,18 @@ require 'atomic'
 # ReviewsApp	decks.score_card
 
 module SRSRB
-  class FieldMissingException < RuntimeError; end
+  class FieldMissingException < RuntimeError;
+    def initialize got, missing
+      @got = got
+      @missing = missing
+    end
+
+    def message
+      "Missing fields: #{missing.inspect}, got: #{got.inspect}"
+    end
+
+    attr_reader :missing, :got
+  end
   class ReviewScoring
     def initialize event_store
       self.event_store = event_store
@@ -98,7 +109,7 @@ module SRSRB
       card = get_card(id)
       expected_fields = models.fetch(model_id).fields
       missing_fields = (expected_fields - data.keys)
-      raise FieldMissingException if not missing_fields.empty?
+      raise FieldMissingException.new(data.keys, missing_fields) if not missing_fields.empty?
 
       event_store.record! id, 
         CardEdited.new(card_fields: data, model_id: model_id), 

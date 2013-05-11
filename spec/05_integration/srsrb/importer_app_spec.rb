@@ -24,12 +24,14 @@ module SRSRB
         expect(last_response).to be_ok
       end
 
+      let (:deck_file_size) { hangul_anki.stat.size }
+      let (:deck_md5sum) { Digest::MD5.hexdigest(hangul_anki.read) }
       it "should allow uploading an anki deck" do
         importer = browser.get_import_page
         import_parser.should_receive(:accept_upload) do |stream|
           data = stream.read
-          expect(data.size).to be == 249856
-          expect(Digest::MD5.hexdigest(data)).to be == '3e9d32d6c854f9d123a8d642372900c1'
+          expect(data.size).to be == deck_file_size
+          expect(Digest::MD5.hexdigest(data)).to be == deck_md5sum
         end
         importer.upload hangul_anki
       end

@@ -95,7 +95,7 @@ module SRSRB
 
     private
     def format str, fields
-      str.gsub(/{{\s*(\w+)\s}}/) { |m| fields.fetch($1) }
+      str.gsub(/{{\s*(\w+)\s*}}/) { |m| fields.fetch($1) }
     end
   end
 end

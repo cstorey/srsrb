@@ -44,7 +44,7 @@ module SRSRB
           end
 
           event_store.record! model_id,
-            ModelTemplatesChanged.new(question: '{{ word }}', answer: '{{ meaning }} {{ sound }}')
+            ModelTemplatesChanged.new(question: '{{ word}}', answer: '{{ meaning }} {{ sound  }}')
 
           event_store.record! id, CardEdited.new(card_fields: card_fields, model_id: model_id)
         end

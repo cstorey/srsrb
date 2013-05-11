@@ -4,6 +4,7 @@ require 'srsrb/decks'
 require 'srsrb/leveldb_event_store'
 require 'srsrb/object_patch'
 require 'srsrb/rackapp'
+require 'srsrb/anki_import_parser'
 require 'srsrb/importer_app'
 
 require 'lexical_uuid'

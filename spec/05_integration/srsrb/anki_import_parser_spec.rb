@@ -63,6 +63,8 @@ module SRSRB
       parser.accept_upload hangul
     end
 
+    it "should rather create a card view for each card layout in the deck"
+
     it "should create cards for each fact in the deck" do
       card_editing.should_receive(:add_or_edit_card!).
         with(an_instance_of(LexicalUUID), an_instance_of(LexicalUUID), anything).

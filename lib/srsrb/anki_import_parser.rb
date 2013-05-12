@@ -40,13 +40,13 @@ module SRSRB
           select_map([:facts__id, :fieldModels__name, :fields__value]).
           group_by(&:first).
           each do |fact_id, grouped|
-            data = grouped.inject(Hamster.hash) { |h, (_, field, value)| h.put(field, value) }
+            data = {}
+            grouped.each do |(_, field, value)|
+              data[field] = value
+            end
             card_editing.add_or_edit_card! LexicalUUID.new, model_id, data
         end
       end
-
-    rescue => e
-      puts e, e.message, e.backtrace
     end
 
     attr_accessor :model_editing, :card_editing

@@ -92,6 +92,25 @@ module SRSRB
     end
 
     attr_accessor :cards, :event_store, :_card_models, :_card_model_id_by_card
+
+    class CardFormat < Hamsterdam::Struct.define(:id, :question_template, :answer_template)
+      def fields
+        super || Hamster.vector
+      end
+
+      def format_question_with card_fields
+        format question_template, card_fields
+      end
+      def format_answer_with card_fields
+        format answer_template, card_fields
+      end
+
+      private
+      def format str, fields
+        str.gsub(/{{\s*(\w+)\s*}}/) { |m| fields.fetch($1, "Unknown field: #{$1}") }
+      end
+    end
+
   end
 
   class Card < Hamsterdam::Struct.define(:id, :question, :answer, :review_count, :due_date)
@@ -107,6 +126,5 @@ module SRSRB
       super || 0
     end
   end
-
 
 end

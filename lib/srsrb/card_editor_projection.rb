@@ -35,14 +35,13 @@ module SRSRB
         when CardEdited then handle_card_edited id, event
         when ModelNamed then handle_model_named id, event
         when ModelFieldAdded then handle_model_field_added id, event
-        when ModelTemplatesChanged then handle_model_templates_changed id, event
       end
     end
 
     private
     def handle_model_field_added id, event
       update_model(id) { |old_model|
-        model = old_model || CardFormat.new(id: id)
+        model = old_model || Schema.new(id: id)
         model.set_fields model.fields.add(event.field)
       }
     end
@@ -57,13 +56,6 @@ module SRSRB
       _card_model_ids.update { |ids| ids.include?(id) ? ids : ids.add(id) }
     end
 
-    def handle_model_templates_changed id, event
-      update_model(id) { |model|
-        model ||= CardFormat.new id: id
-        model.set_question_template(event.question).set_answer_template(event.answer)
-      }
-    end
-
     def handle_card_edited id, event
       _editable_cards.update { |oldver|
         oldver.put(id, EditableCard.new(id: id, fields: event.card_fields,
@@ -72,30 +64,19 @@ module SRSRB
     end
 
     def handle_model_named id, event
-      update_model(id) { |model| model ||= CardFormat.new(id: id); model.set_name(event.name) }
+      update_model(id) { |model| model ||= Schema.new(id: id); model.set_name(event.name) }
     end
 
     attr_accessor :queue, :event_store, :_card_models, :_card_model_ids, :_card_model_id_by_card, :_editable_cards
+
+    class Schema < Hamsterdam::Struct.define :id, :fields, :name
+      def fields
+        super || Hamster.vector
+      end
+    end
   end
  
   class EditableCard < Hamsterdam::Struct.define(:id, :fields, :model_id)
   end
 
-  class CardFormat < Hamsterdam::Struct.define(:id, :name, :fields, :question_template, :answer_template)
-    def fields
-      super || Hamster.vector
-    end
-
-    def format_question_with card_fields
-      format question_template, card_fields
-    end
-    def format_answer_with card_fields
-      format answer_template, card_fields
-    end
-
-    private
-    def format str, fields
-      str.gsub(/{{\s*(\w+)\s*}}/) { |m| fields.fetch($1, "Unknown field: #{$1}") }
-    end
-  end
 end

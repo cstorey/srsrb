@@ -1,10 +1,8 @@
-require 'srsrb/decks'
+require 'srsrb/models'
 require 'lexical_uuid'
 require 'fake_event_store'
 
 module SRSRB
-
-
   describe Models do
     describe "#fetch" do
       let (:event_store) { FakeEventStore.new }

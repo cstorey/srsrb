@@ -2,17 +2,6 @@ require 'srsrb/events'
 require 'hamster/hash'
 require 'atomic'
 
-# TODO: Split according to usage:
-#
-# CardEditorApp	decks.add_or_edit_card
-# CardEditorApp	decks.set_model_for_card
-#
-# ModelEditorApp	decks.add_model_field
-# ModelEditorApp	decks.edit_model_templates
-# ModelEditorApp	decks.name_model
-#
-# ReviewsApp	decks.score_card
-
 module SRSRB
   class Models
     def initialize event_store

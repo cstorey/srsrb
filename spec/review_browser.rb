@@ -220,7 +220,6 @@ module SRSRB
     end
 
     def card_with_question q
-      browser.save_and_open_page
       browser.click_link q
       parent.parse
     end

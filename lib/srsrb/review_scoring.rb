@@ -40,4 +40,35 @@ module SRSRB
 
     attr_accessor :event_store, :cards
   end
+
+  class ReviewableCard < Hamsterdam::Struct.define(:id, :version, :next_due_date, :interval, :store)
+    def score_as score
+      if good? score
+        interval = [self.interval * 2, 1].max
+      elsif poor? score
+        interval = [self.interval, 1].max
+      else
+        interval = 0
+      end
+
+      next_due_date = self.next_due_date + interval
+      event = CardReviewed.new score: score, next_due_date: next_due_date, interval: interval
+      version = store.record! id, event, self.version
+      self.set_interval(interval).set_next_due_date(next_due_date).set_version(version)
+    end
+
+    def apply event, new_version
+      return self.set_version(new_version) if not event.kind_of? CardReviewed
+      self.set_interval(event.interval).set_next_due_date(event.next_due_date).set_version(new_version)
+    end
+
+    private
+    def good? score
+      score == :good
+    end
+
+    def poor? score
+      score == :poor
+    end
+  end
 end

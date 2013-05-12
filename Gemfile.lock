@@ -28,11 +28,15 @@ GEM
     coderay (1.0.9)
     descendants_tracker (0.0.1)
     diff-lcs (1.2.1)
+    dotenv (0.7.0)
     equalizer (0.0.5)
       adamantium (~> 0.0.6)
       backports (~> 3.0, >= 3.0.3)
     ffi (1.4.0)
     fnv (0.2.0)
+    foreman (0.63.0)
+      dotenv (>= 0.7)
+      thor (>= 0.13.6)
     guard (1.6.2)
       listen (>= 0.6.0)
       lumberjack (>= 1.0.2)
@@ -130,6 +134,7 @@ PLATFORMS
 DEPENDENCIES
   atomic
   capybara
+  foreman
   guard
   guard-bundler
   guard-rspec

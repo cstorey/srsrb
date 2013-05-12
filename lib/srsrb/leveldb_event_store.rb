@@ -4,7 +4,9 @@ require 'leveldb'
 module SRSRB
   class LevelDbEventStore
     GLOBAL_VERSION_KEY = 'global_sequence'
-    STREAM_VERSION_KEY_FMT = 'stream/%s/version'
+    STREAM_VERSION_KEY_FMT = 'stream-version/%s'
+    STREAM_INDEX_KEY = 'stream/%s/%s'
+    STREAM_INDEX_PREFIX = 'stream'
 
     def initialize storedir
       self.db = LevelDB::DB.new storedir
@@ -41,6 +43,7 @@ module SRSRB
       db.batch do |batch|
         batch.put(key.as_bytes, val)
         batch.put(stream_version_key(id), key.as_bytes)
+        batch.put(per_stream_event_key(id, key), key.as_bytes)
         batch.put(GLOBAL_VERSION_KEY, key.as_bytes)
       end
 
@@ -56,8 +59,13 @@ module SRSRB
     end
 
     def events_for_stream stream_id
-      each_event do |id, event, version|
-        yield event, version if id == stream_id
+      range_start = [STREAM_INDEX_PREFIX, stream_id.to_guid, ''].join('/')
+      range_end = [STREAM_INDEX_PREFIX, stream_id.to_guid, "\xff"].join('/')
+      db.each(from: range_start, to: range_end) do |k, seqid|
+        blob = db.get(seqid)
+        id, event = undump(blob)
+        version = LevelDbEventKey.decode_id(seqid)
+        yield event, version
       end
     end
 
@@ -93,6 +101,10 @@ module SRSRB
 
     def stream_version_key id
       STREAM_VERSION_KEY_FMT % id.to_guid
+    end
+
+    def per_stream_event_key id, key
+      STREAM_INDEX_KEY % [id.to_guid, key.as_bytes]
     end
     attr_accessor :db, :recipients
   end

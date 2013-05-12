@@ -112,7 +112,7 @@ module SRSRB
       raise FieldMissingException.new(data.keys, missing_fields) if not missing_fields.empty?
 
       event_store.record! id, 
-        CardEdited.new(card_fields: data, model_id: model_id), 
+        CardEdited.new(card_fields: Hamster.hash(data), model_id: model_id),
        card.version
     end
 

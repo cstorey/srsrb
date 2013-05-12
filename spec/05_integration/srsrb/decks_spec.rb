@@ -169,7 +169,7 @@ module SRSRB
       it "should record the score, and card in the event store" do
         event_store.should_receive(:record!).
           with(card_id, 
-               CardEdited.new(card_fields: card_fields, model_id: model_id), 
+               CardEdited.new(card_fields: Hamster.hash(card_fields), model_id: model_id),
                nil)
         decks.add_or_edit_card! card_id, model_id, card_fields
       end
@@ -193,7 +193,7 @@ module SRSRB
 
         it "should use the most recent version" do
           event_store.should_receive(:record!).
-            with(card_id, CardEdited.new(card_fields: card_fields, model_id: model_id), 42)
+            with(card_id, an_instance_of(CardEdited), 42)
           decks.add_or_edit_card! card_id, model_id, card_fields
         end
       end

@@ -16,21 +16,67 @@ module SRSRB
     set :raise_errors, true
 
     get '/import/' do
-      session[:foo]
       haml :importer
     end
 
     post '/import/' do
-      if params[:deck_file]
-        parser.accept_upload params[:deck_file].fetch(:tempfile)
-        flash[:success] = "Deck imported"
-      else
-        flash[:error] = "No deck specified"
-      end
+      importer.perform
       redirect request.url
     end
 
+    def import_successful
+      flash[:success] = "Deck imported"
+    end
+
+    def import_failed
+      flash[:error] = "No deck specified"
+    end
+
     private
+    def importer
+      if deck_file_stream.nil?
+        DeckMissing.new(self)
+      else
+        ImportProcess.new(self, parser, deck_file_stream)
+      end
+    end
+
+    def deck_file_stream
+      params.fetch('deck_file', {})[:tempfile]
+    end
+
     attr_accessor :parser
+  end
+
+  class DeckMissing
+    def initialize client
+      @client = client
+    end
+    def perform
+      client.import_failed
+    end
+
+    private
+    attr_reader :client
+  end
+
+  class ImportProcess
+    def initialize client, parser, deck
+      @client = client
+      @parser = parser
+      @deck = deck
+    end
+
+    def perform
+      if deck
+        parser.accept_upload deck
+        client.import_successful
+      else
+        client.import_failed
+      end
+    end
+
+    private
+    attr_reader :client, :parser, :deck
   end
 end

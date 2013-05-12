@@ -90,13 +90,15 @@ module SRSRB
         let (:id) { LexicalUUID.new }
         let (:model_id) { LexicalUUID.new }
         let (:card_fields) { { "word" => "fish", "meaning" => "wet thing", "sound" => "ffish" } }
+        let (:question_template) { '{{ word}}' }
+        let (:answer_template) { '{{ meaning }} {{ sound  }}' }
         before do
           card_fields.each do |field, _|
             event_store.record! model_id, ModelFieldAdded.new(field: field)
           end
 
           event_store.record! model_id,
-            ModelTemplatesChanged.new(question: '{{ word}}', answer: '{{ meaning }} {{ sound  }}')
+            ModelTemplatesChanged.new(question: question_template, answer: answer_template)
 
           event_store.record! id, CardEdited.new(card_fields: card_fields, model_id: model_id)
         end
@@ -119,6 +121,14 @@ module SRSRB
         end
         it "should preserve the answer" do
           expect(deck.card_for(id).answer).to be == "wet thing ffish"
+        end
+
+        context "with a template with an unknown field" do
+          let (:question_template) { " {{ random }} " }
+          it "should render the missing field name" do
+            card = deck.card_for(id)
+            expect(card.question).to match /random/
+          end
         end
 
         it "should set the due-date to zero" do

@@ -77,6 +77,7 @@ module SRSRB
   end
 
   class Page
+    include RSpec::Matchers
     def initialize browser, parent
       self.browser = browser
       self.parent = parent
@@ -88,6 +89,10 @@ module SRSRB
 
     def successes
       browser.all('.alert-box.success').map(&:text)
+    end
+
+    def errors
+      browser.all('.alert-box.error').map(&:text)
     end
 
     attr_accessor :browser, :parent
@@ -213,13 +218,22 @@ module SRSRB
       rows.first.find('td:nth-child(1) a').click
       parent.parse
     end
+
+    def card_with_question q
+      browser.save_and_open_page
+      browser.click_link q
+      parent.parse
+    end
   end
   class CardModelMissingErrorPage < Page
   end
   class AnkiImporterPage < Page
-    def upload pathname
+    def upload pathname, expect_failure=false
       browser.attach_file('deck_file', pathname)
       browser.click_button('Import')
+      parent.parse.tap do |page|
+        expect(page).to have_at_least(1).successes unless expect_failure
+      end
     end
   end
 end

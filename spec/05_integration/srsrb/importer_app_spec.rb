@@ -33,12 +33,22 @@ module SRSRB
           expect(data.size).to be == deck_file_size
           expect(Digest::MD5.hexdigest(data)).to be == deck_md5sum
         end
-        importer.upload hangul_anki
+        importer.upload hangul_anki, true
+      end
+
+      it "should show a happy message if all goes well" do
+        import_parser.stub(:accept_upload)
+        result = browser.get_import_page.upload hangul_anki, true
+        expect(result).to have_at_least(1).successes
       end
 
       it "should redirect back to the same page if no file is specified" do
         post '/import/'
         expect(last_response).to be_redirect
+      end
+      it "should show an error if no file is specified" do
+        result = browser.get_import_page.upload nil, true
+        expect(result).to have_at_least(1).errors
       end
     end
   end

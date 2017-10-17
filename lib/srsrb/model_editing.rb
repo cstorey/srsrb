@@ -26,7 +26,7 @@ module SRSRB
     end
 
     def version_of id
-      version = events_for(id).map(&:last).last
+      version = events_for(id).last.last
     end
 
     attr_accessor :event_store
